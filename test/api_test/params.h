@@ -630,11 +630,10 @@ static const vector<uint32_t> default_rate_control_mode = {
 };
 static const vector<uint32_t> valid_rate_control_mode = {
     0,
-    1,
-};
-static const vector<uint32_t> invalid_rate_control_mode = {
+    /**< 1 is not supported */
     2,
-};
+    3};
+static const vector<uint32_t> invalid_rate_control_mode = {4};
 
 /* Flag to enable the scene change detection algorithm.
  *

@@ -59,9 +59,7 @@ if (UNIX)
 endif(UNIX)
 
 if (MSVC OR MSYS OR MINGW OR WIN32)
-
-    set (lib_list SvtAv1Enc gtest_all)
-
+    set (lib_list ${SvtAv1EncLib} gtest_all)
     cxx_executable_with_flags(SvtAv1ApiTests "${cxx_default}"
       "${lib_list}" ${all_files})
 

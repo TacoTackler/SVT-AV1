@@ -54,7 +54,7 @@ if(BUILD_SHARED_LIBS)
         $<TARGET_OBJECTS:COMMON_ASM_SSE4_1>
         $<TARGET_OBJECTS:COMMON_ASM_AVX2>
     )
-    set_target_properties(SvtAv1EncShared PROPERTIES OUTPUT_NAME SvtAv1Enc)
+    set_target_properties(SvtAv1EncShared PROPERTIES OUTPUT_NAME SvtAv1EncShared)
     target_link_libraries(SvtAv1EncShared ${PLATFORM_LIBS})
     install(TARGETS SvtAv1EncShared DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 endif(BUILD_SHARED_LIBS)

@@ -19,9 +19,8 @@
 #include "FrameQueue.h"
 #include "PerformanceCollect.h"
 #include "CompareTools.h"
-
-class RefDecoder;
-extern RefDecoder *create_reference_decoder();
+#include "EbDefinitions.h"
+#include "RefDecoder.h"
 
 #define INPUT_SIZE_576p_TH 0x90000    // 0.58 Million
 #define INPUT_SIZE_1080i_TH 0xB71B0   // 0.75 Million
@@ -101,7 +100,7 @@ class SvtAv1E2ETestFramework
 
   public:
     static VideoSource *prepare_video_src(const TestVideoVector &vector);
-    static void trans_src_param(const VideoSource *source,
+    static void setup_src_param(const VideoSource *source,
                                 EbSvtAv1EncConfiguration &config);
     /** get reconstructed frame from encoder, it should call after send data
      * @param ctxt  context of encoder
@@ -145,7 +144,7 @@ class SvtAv1E2ETestFramework
     VideoSource *psnr_src_;         /**< video source context for psnr */
     ICompareQueue *ref_compare_; /**< sink of reference to compare with recon*/
     PsnrStatistics pnsr_statistics_; /**< psnr statistics recorder.*/
-    uint64_t total_enc_out_;
+    bool use_ext_qp_; /**< flag of use external qp from video source or not*/
 };
 
 }  // namespace svt_av1_e2e_test

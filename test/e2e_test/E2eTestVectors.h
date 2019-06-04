@@ -108,6 +108,9 @@ static inline const std::vector<TestVideoVector> generate_vector_from_config(
                                              frame_count));
         }
         fclose(file_handle);
+    } else {
+        printf("test configuration file can not be opended: %s!\n",
+               cfg_fn.c_str());
     }
     return values;
 }
