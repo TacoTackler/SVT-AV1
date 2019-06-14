@@ -35,6 +35,11 @@
  * frame_rate_denominator.
  */
 
+/** THIS_TEST_IS_DEATH is a macro to enable death test for some paramaters;
+ * THIS_TEST_VECTOR_CRASHES is a switch to enable the test alwasys crashes */
+#define THIS_TEST_IS_DEATH 1
+#define THIS_TEST_VECTOR_CRASHES 0
+
 using namespace svt_av1_e2e_test;
 using namespace svt_av1_e2e_test_vector;
 using std::stoul;
@@ -279,6 +284,18 @@ class SvtAv1E2EParamFramework : public SvtAv1E2ETestFramework {
 #define PARAM_TEST(param_test) \
     PARAM_TEST_WITH_VECTOR(param_test, "smoking_test.cfg")
 
+#define PARAM_DEATHTEST_WITH_VECTOR(param_test, vectors) \
+    TEST_P(param_test, run_paramter_conformance_test) {  \
+        run_conformance_death_test();                    \
+    }                                                    \
+    INSTANTIATE_TEST_CASE_P(                             \
+        SVT_AV1,                                         \
+        param_test,                                      \
+        ::testing::ValuesIn(generate_vector_from_config(vectors)));
+
+#define PARAM_DEATHTEST(param_test) \
+    PARAM_DEATHTEST_WITH_VECTOR(param_test, "smoking_test.cfg")
+
 #define GET_PARAM GET_VALID_PARAM
 #define SIZE_PARAM SIZE_VALID_PARAM
 
@@ -319,6 +336,23 @@ class SvtAv1E2EParamFramework : public SvtAv1E2ETestFramework {
                 SvtAv1E2EParamFramework::SetUp();                              \
                 if (!skip_test_)                                               \
                     run_encode_process();                                      \
+                else {                                                         \
+                    printf("test %s(%s) skipped vector\n",                     \
+                           param_name_str_.c_str(),                            \
+                           param_value_str_.c_str());                          \
+                }                                                              \
+                SvtAv1E2EParamFramework::TearDown();                           \
+            }                                                                  \
+        }                                                                      \
+        /** run for the conformance death test */                              \
+        void run_conformance_death_test() {                                    \
+            testing::FLAGS_gtest_death_test_style = "threadsafe";              \
+            for (param_value_idx_ = 0;                                         \
+                 param_value_idx_ < SIZE_PARAM(param_name);                    \
+                 ++param_value_idx_) {                                         \
+                SvtAv1E2EParamFramework::SetUp();                              \
+                if (!skip_test_)                                               \
+                    EXPECT_DEATH(run_encode_process(), "");                    \
                 else {                                                         \
                     printf("test %s(%s) skipped vector\n",                     \
                            param_name_str_.c_str(),                            \
@@ -394,6 +428,18 @@ PARAM_TEST(SvtAv1E2EParamEnableQPScaleTest);
 /** Test case for enable_denoise_flag*/
 DEFINE_PARAM_TEST_CLASS(SvtAv1E2EParamEnableDenoiseTest, enable_denoise_flag);
 PARAM_TEST(SvtAv1E2EParamEnableDenoiseTest);
+
+#if THIS_TEST_IS_DEATH
+/** Test case for film_grain_denoise_strength*/
+DEFINE_PARAM_TEST_CLASS(SvtAv1E2EParamFilmGrainDenoiseStrTest,
+                        film_grain_denoise_strength);
+#if THIS_TEST_VECTOR_CRASHES
+PARAM_TEST_WITH_VECTOR(SvtAv1E2EParamFilmGrainDenoiseStrTest,
+                       "conformance_test.cfg");
+#else
+PARAM_TEST(SvtAv1E2EParamFilmGrainDenoiseStrTest);
+#endif  // THIS_TEST_VECTOR_CRASHES
+#endif  // THIS_TEST_IS_DEATH
 
 /** Test case for use_default_me_hme*/
 DEFINE_PARAM_TEST_CLASS(SvtAv1E2EParamUseDefaultMeHmeTest, use_default_me_hme);

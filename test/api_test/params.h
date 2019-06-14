@@ -33,10 +33,12 @@ using std::vector;
 #define SIZE_VALID_PARAM(p) (svt_av1_test_params::valid_##p.size())
 #define SIZE_INVALID_PARAM(p) (svt_av1_test_params::invalid_##p.size())
 #define SIZE_SPECIAL_PARAM(p) (svt_av1_test_params::special_##p.size())
+#define SIZE_DEATH_PARAM(p) (svt_av1_test_params::death_##p.size())
 #define GET_DEFAULT_PARAM(p) (svt_av1_test_params::default_##p[0])
 #define GET_VALID_PARAM(p, n) (svt_av1_test_params::valid_##p[n])
 #define GET_INVALID_PARAM(p, n) (svt_av1_test_params::invalid_##p[n])
 #define GET_SPECIAL_PARAM(p, n) (svt_av1_test_params::special_##p[n])
+#define GET_DEATH_PARAM(p, n) (svt_av1_test_params::death_##p[n])
 
 /** @defgroup svt_av1_test_params Test vectors of individual params test
  *  Defines test values of encoder params in test vectors, includes default,

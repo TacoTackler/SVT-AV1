@@ -122,3 +122,29 @@ TEST_P(SvtAv1E2EConformanceTest, run_conformance_test) {
 INSTANTIATE_TEST_CASE_P(
     SVT_AV1, SvtAv1E2EConformanceTest,
     ::testing::ValuesIn(generate_vector_from_config("conformance_test.cfg")));
+
+/* @brief SVT-AV1 encoder E2E test by comparing the reconstruction frames with
+ * output frame from decoder buffer list, but found dead in linux
+ *
+ * Test strategy:
+ * Setup SVT-AV1 encoder with default parameter, and encode the input YUV data
+ * frames. Collect the reconstructed frames and compared them with reference
+ * decoder output, and in progress the test will crashes with segment fault.
+ *
+ * Expected result:
+ * The assert of death is true and pass the test
+ *
+ * Test coverage:
+ * Special test vectors with resolution 952x512 and 952x704 in
+ * src_resolution_death_test_vectors
+ */
+class SvtAv1E2EConformanceDeathTest : public SvtAv1E2EConformanceTest {};
+
+TEST_P(SvtAv1E2EConformanceDeathTest, run_conformance_test) {
+    testing::FLAGS_gtest_death_test_style = "threadsafe";
+    ASSERT_DEATH(run_encode_process(), "");
+}
+
+INSTANTIATE_TEST_CASE_P(SVT_AV1, SvtAv1E2EConformanceDeathTest,
+                        ::testing::ValuesIn(generate_vector_from_config(
+                            "src_resolution_death_test.cfg")));
