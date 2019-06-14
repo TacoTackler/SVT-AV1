@@ -210,8 +210,6 @@ class SvtAv1E2EParamFramework : public SvtAv1E2ETestFramework {
         }
     }
 
-    static const std::map<std::string &, uint32_t> ignore_case_map;
-
     /** additional process after parameter test finish */
     void verify_enc_param() {
         if (enable_analyzer_ && refer_dec_ && !is_ignored()) {
