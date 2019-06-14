@@ -115,6 +115,25 @@ static inline const std::vector<TestVideoVector> generate_vector_from_config(
     return values;
 }
 
+/** MultiInstVector */
+typedef std::tuple<TestVideoVector, /**< video source */
+                   uint32_t>        /**< instance number for test */
+    MultiInstVector;
+
+static const MultiInstVector multi_inst_vectors[] = {
+    MultiInstVector{TestVideoVector{"kirland_640_480_30.yuv",
+                                    YUV_VIDEO_FILE,
+                                    IMG_FMT_420,
+                                    640,
+                                    480,
+                                    8,
+                                    false,
+                                    0,
+                                    0},
+
+                    2},
+};
+
 }  // namespace svt_av1_e2e_test_vector
 /** @} */  // end of svt_av1_e2e_test_vector
 
