@@ -1,0 +1,13 @@
+# this file is a sample for configuration file of e2e configurable test:
+# each individual test suite should be written in a single line
+# and its test parameters are seprated by semicolon ';'
+# each parameter is set as format: key=value
+# following are the list of available parameters:
+# -name: the name of test suite
+# -description: the detail discription of test suite
+# -config_line: the configuration parameters for av1 encoder, please refer to the guide of "SvtAv1EncApp"
+# -test_vector: test vectors for this test suite should be the file name of test vector configuration file
+# PS: user can use '#' to comments and disable the test suites
+
+#name=configurable_test;description=this is a sample of configurable test;config_line=-enc-mode 8;test_vector=more_test.cfg
+name=configurable_test;description=this is a sample of configurable test;config_line=-enc-mode 8;test_vector=conformance_test.cfg

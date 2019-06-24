@@ -11,5 +11,6 @@ void *create_enc_config();
 void release_enc_config(void *config_ptr);
 void set_enc_config(void *config, const char *name, const char *value);
 int copy_enc_param(EbSvtAv1EncConfiguration *dst_enc_config, void *config_ptr);
+int get_enc_config(int argc, const char *const argv[], void *config_ptr);
 
 #endif

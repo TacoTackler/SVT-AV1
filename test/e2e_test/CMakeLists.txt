@@ -43,6 +43,10 @@ set(lib_list
     #SDL2.lib
     aom)
 
+# setup configuration file path for e2e test
+set(SVT_AV1_E2E_TEST_CFG_PATH "${SVT_AV1_E2E_ROOT}/../vectors/")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSVT_AV1_E2E_TEST_CFG_PATH=${SVT_AV1_E2E_TEST_CFG_PATH}")
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 endif()

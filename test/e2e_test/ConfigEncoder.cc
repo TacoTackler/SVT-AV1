@@ -45,3 +45,12 @@ int copy_enc_param(EbSvtAv1EncConfiguration *dst_enc_config, void *config_ptr) {
            sizeof(EbSvtAv1EncConfiguration));
     return 0;
 }
+
+int get_enc_config(int argc, const char *const argv[], void *config_ptr) {
+    EbConfig *config = (EbConfig *)config_ptr;
+    EbErrorType err = EB_ErrorNone;
+    read_command_line(argc, (char *const *)argv, &config, 1, &err);
+    if (err != EB_ErrorNone)
+        return -1;
+    return 1;
+}

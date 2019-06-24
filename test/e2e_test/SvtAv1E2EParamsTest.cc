@@ -18,6 +18,8 @@
 #include "SvtAv1E2EFramework.h"
 #include "../api_test/params.h"
 #include "RefDecoder.h"
+#include "ConfigEncoder.h"
+#include "ConfigReader.h"
 
 /**
  * @brief SVT-AV1 encoder parameter coverage E2E test
@@ -263,3 +265,76 @@ TEST_P(CodingOptionTest, CheckEncOptionsUsingBitstream) {
 INSTANTIATE_TEST_CASE_P(SvtAv1, CodingOptionTest,
                         ::testing::ValuesIn(default_enc_settings),
                         EncTestSetting::GetSettingName);
+
+/**
+ * @brief SVT-AV1 encoder configurable parameter coverage E2E test
+ *
+ * Test strategy:
+ * Config SVT-AV1 encoder with parameter setting in file, run the
+ * conformance test and analyze the bitstream to check if the params
+ * take effect.
+ *
+ * Expected result:
+ * No error is reported in encoding progress. The reconstructed frame
+ * data is same as the output frame from reference decoder.
+ *
+ * Test coverage:
+ * All parameters supported in command line format of SvtAviEncApp
+ *
+ * Configuration guide:
+ *     ConfigurableOptionTest reads configuration file in
+ * ./test/vectors/config_test.ecf.
+ *     Test supports multipule test cases in one
+ * file, each line for a single test case. The parameters are devided apart by
+ * ';', and they are in the format of <key>=<value>; current support following
+ * keys:
+ *    --name: the name of the test in string
+ *    --description: the description of test in string
+ *    --config_line: the command line in SvtAviEncApp format, please refer to
+ * the help of SvtAviEncApp
+ *    --test_vector: the vector config file name of test vector, should be in
+ * the path of ./test/vectors/ or set system environment variable
+ * SVT_AV1_TEST_VECTOR_PATH
+ */
+
+class ConfigurableOptionTest : public CodingOptionTest {
+  public:
+    void config_test() override {
+        enable_recon = true;
+        enable_decoder = true;
+        enable_analyzer = true;
+
+        // load encoder settings from test configuration
+        ConfigReader::TestConfig config(enc_setting);
+        int max_args = 100;
+        const char *args[100] = {0};
+        int args_num = config.get_arg_arr(args, max_args);
+        get_enc_config(args_num, args, enc_config_);
+    }
+};
+
+TEST_P(ConfigurableOptionTest, CheckEncOptionsUsingBitstream) {
+    run_death_test();
+}
+
+static std::vector<EncTestSetting> generate_config_from_file(
+    const std::string config_path) {
+    string config_dir = get_config_dir();
+    string config_fullpath = config_dir + '/' + config_path;
+
+    ConfigReader reader(config_fullpath);
+    int count = reader.get_config_count();
+    if (count <= 0)
+        printf("can not find configuration from file: %s!\n",
+               config_fullpath.c_str());
+
+    std::vector<EncTestSetting> config_vec;
+    for (int i = 0; i < count; i++)
+        config_vec.push_back(*reader.get_config(i));
+    return config_vec;
+}
+
+INSTANTIATE_TEST_CASE_P(
+    SvtAv1, ConfigurableOptionTest,
+    ::testing::ValuesIn(generate_config_from_file("config_test.ecf")),
+    EncTestSetting::GetSettingName);

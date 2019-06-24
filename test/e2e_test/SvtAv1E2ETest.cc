@@ -196,7 +196,7 @@ TEST_P(LongtimeConformanceTest, DISABLED_LongtimeTest) {
 }
 
 INSTANTIATE_TEST_CASE_P(SvtAv1, LongtimeConformanceTest,
-                        ::testing::ValuesIn(generate_vector_from_config(
+                        ::testing::ValuesIn(generate_setting_from_config(
                             "longtime_comformance_test.cfg")),
                         EncTestSetting::GetSettingName);
 /**
