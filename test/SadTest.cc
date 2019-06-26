@@ -72,48 +72,53 @@ typedef std::tuple<TestPattern, SadSize> SadTestParam;
 /**
  * @brief Base class for SAD test. SADTestBase handle test vector in memory,
  * provide SAD and SAD avg reference function
- *
  */
 class SADTestBase : public ::testing::Test {
   public:
     SADTestBase(const int width, const int height, TestPattern test_pattern) {
         width_ = width;
         height_ = height;
-        source_stride_ = ref1_stride_ = ref2_stride_ = width_ * 2;
+        src_stride_ = ref1_stride_ = ref2_stride_ = width_ * 2;
         test_pattern_ = test_pattern;
     };
 
     void SetUp() override {
-        int32_t mask = (1 << 8) - 1;
+        src_aligned_ = (uint8_t *)(((intptr_t)src_data_ + 31) & ~31);
+        ref1_aligned_ = (uint8_t *)(((intptr_t)ref1_data_ + 31) & ~31);
+        ref2_aligned_ = (uint8_t *)(((intptr_t)ref2_data_ + 31) & ~31);
+    }
+
+    void prepare_data() {
+        const int32_t mask = (1 << 8) - 1;
         SVTRandom rnd(0, mask);
         switch (test_pattern_) {
         case REF_MAX: {
             for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = 0;
-                ref1_data_[i] = ref2_data_[i] = mask;
+                src_aligned_[i] = 0;
+                ref1_aligned_[i] = ref2_aligned_[i] = mask;
             }
             break;
         }
         case SRC_MAX: {
             for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = mask;
-                ref1_data_[i] = ref2_data_[i] = 0;
+                src_aligned_[i] = mask;
+                ref1_aligned_[i] = ref2_aligned_[i] = 0;
             }
             break;
         }
         case RANDOM: {
             for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = rnd.random();
-                ref1_data_[i] = rnd.random();
-                ref2_data_[i] = rnd.random();
+                src_aligned_[i] = rnd.random();
+                ref1_aligned_[i] = rnd.random();
+                ref2_aligned_[i] = rnd.random();
             }
             break;
         };
         case UNALIGN: {
             for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = rnd.random();
-                ref1_data_[i] = rnd.random();
-                ref2_data_[i] = rnd.random();
+                src_aligned_[i] = rnd.random();
+                ref1_aligned_[i] = rnd.random();
+                ref2_aligned_[i] = rnd.random();
             }
             ref1_stride_ -= 1;
             ref2_stride_ -= 1;
@@ -127,8 +132,8 @@ class SADTestBase : public ::testing::Test {
         unsigned int sad = 0;
         for (int h = 0; h < height_; ++h) {
             for (int w = 0; w < width_; ++w) {
-                sad += abs(source_data_[h * source_stride_ + w] -
-                           ref1_data_[h * ref1_stride_ + w]);
+                sad += abs(src_aligned_[h * src_stride_ + w] -
+                           ref1_aligned_[h * ref1_stride_ + w]);
             }
         }
         return sad;
@@ -138,10 +143,10 @@ class SADTestBase : public ::testing::Test {
         unsigned int sad = 0;
         for (int h = 0; h < height_; ++h) {
             for (int w = 0; w < width_; ++w) {
-                const int tmp = ref2_data_[h * ref2_stride_ + w] +
-                                ref1_data_[h * ref1_stride_ + w];
+                const int tmp = ref2_aligned_[h * ref2_stride_ + w] +
+                                ref1_aligned_[h * ref1_stride_ + w];
                 const uint8_t comp_pred = ROUND_POWER_OF_TWO(tmp, 1);
-                sad += abs(source_data_[h * source_stride_ + w] - comp_pred);
+                sad += abs(src_aligned_[h * src_stride_ + w] - comp_pred);
             }
         }
         return sad;
@@ -149,15 +154,18 @@ class SADTestBase : public ::testing::Test {
 
   protected:
     int width_, height_;
-    int source_stride_;
+    int src_stride_;
     int ref1_stride_;
     int ref2_stride_;
     TestPattern test_pattern_;
-
-    DECLARE_ALIGNED(32, uint8_t, source_data_[MAX_BLOCK_SIZE]);
-    DECLARE_ALIGNED(32, uint8_t, ref1_data_[MAX_BLOCK_SIZE]);
-    DECLARE_ALIGNED(32, uint8_t, ref2_data_[MAX_BLOCK_SIZE]);
+    uint8_t *src_aligned_;
+    uint8_t *ref1_aligned_;
+    uint8_t *ref2_aligned_;
+    DECLARE_ALIGNED(32, uint8_t, src_data_[MAX_BLOCK_SIZE + 31]);
+    DECLARE_ALIGNED(32, uint8_t, ref1_data_[MAX_BLOCK_SIZE + 31]);
+    DECLARE_ALIGNED(32, uint8_t, ref2_data_[MAX_BLOCK_SIZE + 31]);
 };
+
 /**
  * @brief Unit test for SAD sub smaple functions include:
  *  - nxm_sad_kernel_sub_sampled_func_ptr_array
@@ -198,23 +206,25 @@ class SADTestSubSample : public ::testing::WithParamInterface<SadTestParam>,
                                                      [width_ >> 3];
         EbSadKernelNxMType avx2_func =
             nxm_sad_kernel_sub_sampled_func_ptr_array[ASM_AVX2][width_ >> 3];
-        ;
 
         uint32_t ref_sad = 0;
         uint32_t non_avx2_sad = 0;
         uint32_t avx2_sad = 0;
+
+        prepare_data();
+
         ref_sad = reference_sad();
         if (non_avx2_func != nullptr)
-            non_avx2_sad = non_avx2_func(source_data_,
-                                         source_stride_,
-                                         ref1_data_,
+            non_avx2_sad = non_avx2_func(src_aligned_,
+                                         src_stride_,
+                                         ref1_aligned_,
                                          ref1_stride_,
                                          height_,
                                          width_);
         if (avx2_func != nullptr)
-            avx2_sad = avx2_func(source_data_,
-                                 source_stride_,
-                                 ref1_data_,
+            avx2_sad = avx2_func(src_aligned_,
+                                 src_stride_,
+                                 ref1_aligned_,
                                  ref1_stride_,
                                  height_,
                                  width_);
@@ -281,18 +291,21 @@ class SADTest : public ::testing::WithParamInterface<SadTestParam>,
         uint32_t ref_sad = 0;
         uint32_t non_avx2_sad = 0;
         uint32_t avx2_sad = 0;
+
+        prepare_data();
+
         ref_sad = reference_sad();
         if (non_avx2_func != nullptr)
-            non_avx2_sad = non_avx2_func(source_data_,
-                                         source_stride_,
-                                         ref1_data_,
+            non_avx2_sad = non_avx2_func(src_aligned_,
+                                         src_stride_,
+                                         ref1_aligned_,
                                          ref1_stride_,
                                          height_,
                                          width_);
         if (avx2_func != nullptr)
-            avx2_sad = avx2_func(source_data_,
-                                 source_stride_,
-                                 ref1_data_,
+            avx2_sad = avx2_func(src_aligned_,
+                                 src_stride_,
+                                 ref1_aligned_,
                                  ref1_stride_,
                                  height_,
                                  width_);
@@ -359,22 +372,25 @@ class SADAvgTest : public ::testing::WithParamInterface<SadTestParam>,
         uint32_t ref_sad = 0;
         uint32_t non_avx2_sad = 0;
         uint32_t avx2_sad = 0;
+
+        prepare_data();
+
         ref_sad = reference_sad_avg();
         if (non_avx2_func != nullptr)
-            non_avx2_sad = non_avx2_func(source_data_,
-                                         source_stride_,
-                                         ref1_data_,
+            non_avx2_sad = non_avx2_func(src_aligned_,
+                                         src_stride_,
+                                         ref1_aligned_,
                                          ref1_stride_,
-                                         ref2_data_,
+                                         ref2_aligned_,
                                          ref2_stride_,
                                          height_,
                                          width_);
         if (avx2_func != nullptr)
-            avx2_sad = avx2_func(source_data_,
-                                 source_stride_,
-                                 ref1_data_,
+            avx2_sad = avx2_func(src_aligned_,
+                                 src_stride_,
+                                 ref1_aligned_,
                                  ref1_stride_,
-                                 ref2_data_,
+                                 ref2_aligned_,
                                  ref2_stride_,
                                  height_,
                                  width_);
@@ -425,46 +441,47 @@ class SadLoopTest : public ::testing::WithParamInterface<SadTestParam>,
     SadLoopTest()
         : SADTestBase(std::get<0>(TEST_GET_PARAM(1)),
                       std::get<1>(TEST_GET_PARAM(1)), TEST_GET_PARAM(0)) {
-        source_stride_ = ref_1_stride_ = ref2_stride_ = 256;
+        src_stride_ = width_ * 2;
+        ref1_stride_ = ref2_stride_ = 128;
     };
 
   protected:
     void check_sad_loop_sparse() {
-        uint64_t best_sad1[4];
+        uint64_t best_sad1 = UINT64_MAX;
         int16_t x_search_center1 = 0;
         int16_t y_search_center1 = 0;
 
-        printf("Width:%d, height_:%d\r\n", width_, height_);
-        sad_loop_kernel_sparse_sse4_1_intrin(source_data_,
-                                             source_stride_,
-                                             ref_1_data_,
-                                             ref_1_stride_,
+        prepare_data();
+
+        sad_loop_kernel_sparse_sse4_1_intrin(src_aligned_,
+                                             src_stride_,
+                                             ref1_aligned_,
+                                             ref1_stride_,
                                              height_,
                                              width_,
-                                             best_sad1,
+                                             &best_sad1,
                                              &x_search_center1,
                                              &y_search_center1,
-                                             source_stride_,
-                                             128,
-                                             128);
-        uint64_t best_sad2[4];
+                                             ref1_stride_,
+                                             64,
+                                             64);
+        uint64_t best_sad2 = UINT64_MAX;
         int16_t x_search_center2 = 0;
         int16_t y_search_center2 = 0;
-        sad_loop_kernel_sparse_avx2_intrin(source_data_,
-                                           source_stride_,
-                                           ref_1_data_,
-                                           ref_1_stride_,
+        sad_loop_kernel_sparse_avx2_intrin(src_aligned_,
+                                           src_stride_,
+                                           ref1_aligned_,
+                                           ref1_stride_,
                                            height_,
                                            width_,
-                                           best_sad2,
+                                           &best_sad2,
                                            &x_search_center2,
                                            &y_search_center2,
-                                           source_stride_,
-                                           128,
-                                           128);
+                                           ref1_stride_,
+                                           64,
+                                           64);
 
-        EXPECT_EQ(0, memcmp(best_sad1, best_sad2, sizeof(best_sad1)))
-            << "compare bast_sad error";
+        EXPECT_EQ(best_sad1, best_sad2) << "compare bast_sad error";
         EXPECT_EQ(x_search_center1, x_search_center2)
             << "compare x_search_center error";
         EXPECT_EQ(y_search_center1, y_search_center2)
@@ -472,52 +489,46 @@ class SadLoopTest : public ::testing::WithParamInterface<SadTestParam>,
     }
 
     void check_sad_loop() {
-        uint64_t best_sad1[4];
+        uint64_t best_sad1 = UINT64_MAX;
         int16_t x_search_center1 = 0;
         int16_t y_search_center1 = 0;
 
-        sad_loop_kernel_sse4_1_intrin(source_data_,
-                                      source_stride_,
-                                      ref_1_data_,
-                                      ref_1_stride_,
-                                      16,
-                                      16,
-                                      best_sad1,
+        prepare_data();
+
+        sad_loop_kernel_sse4_1_intrin(src_aligned_,
+                                      src_stride_,
+                                      ref1_aligned_,
+                                      ref1_stride_,
+                                      height_,
+                                      width_,
+                                      &best_sad1,
                                       &x_search_center1,
                                       &y_search_center1,
-                                      source_stride_,
-                                      128,
-                                      128);
-        uint64_t best_sad2[4];
+                                      ref1_stride_,
+                                      64,
+                                      64);
+        uint64_t best_sad2 = UINT64_MAX;
         int16_t x_search_center2 = 0;
         int16_t y_search_center2 = 0;
-        sad_loop_kernel_avx2_intrin(source_data_,
-                                    source_stride_,
-                                    ref_1_data_,
-                                    ref_1_stride_,
-                                    16,
-                                    16,
-                                    best_sad2,
+        sad_loop_kernel_avx2_intrin(src_aligned_,
+                                    src_stride_,
+                                    ref1_aligned_,
+                                    ref1_stride_,
+                                    height_,
+                                    width_,
+                                    &best_sad2,
                                     &x_search_center2,
                                     &y_search_center2,
-                                    source_stride_,
-                                    128,
-                                    128);
+                                    ref1_stride_,
+                                    64,
+                                    64);
 
-        EXPECT_EQ(0, memcmp(best_sad1, best_sad2, sizeof(best_sad1)))
-            << "compare bast_sad error";
+        EXPECT_EQ(best_sad1, best_sad2) << "compare bast_sad error";
         EXPECT_EQ(x_search_center1, x_search_center2)
             << "compare x_search_center error";
         EXPECT_EQ(y_search_center1, y_search_center2)
             << "compare y_search_center error";
     }
-
-    int source_stride_;
-    int ref_1_stride_;
-    TestPattern vector_param_;
-
-    DECLARE_ALIGNED(32, uint8_t, source_data_[MAX_BLOCK_SIZE]);
-    DECLARE_ALIGNED(32, uint8_t, ref_1_data_[MAX_BLOCK_SIZE]);
 };
 
 TEST_P(SadLoopTest, SadLoopSparseTest) {
@@ -532,7 +543,6 @@ INSTANTIATE_TEST_CASE_P(
     SAD, SadLoopTest,
     ::testing::Combine(::testing::ValuesIn(TEST_PATTERNS),
                        ::testing::ValuesIn(TEST_LOOP_SIZES)));
-
 /**
  * @brief Unit test for GetEightSadTest functions include:
  *  -
@@ -553,59 +563,27 @@ INSTANTIATE_TEST_CASE_P(
  * Test cases:
  *
  */
-
-class GetEightSadTest : public ::testing::TestWithParam<TestPattern> {
+class GetEightSadTest : public ::testing::WithParamInterface<TestPattern>,
+                        public SADTestBase {
   public:
-    GetEightSadTest() : vector_param_(GetParam()) {
-        source_stride_ = ref_1_stride_ = 256;
+    GetEightSadTest() : SADTestBase(16, 16, GetParam()) {
+        src_stride_ = ref1_stride_ = 256;
     };
-    void SetUp() override {
-        int32_t mask = (1 << 8) - 1;
-        SVTRandom *rnd = new SVTRandom(0, mask);
-        switch (vector_param_) {
-        case REF_MAX: {
-            for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = 0;
-                ref_1_data_[i] = mask;
-            }
-            break;
-        }
-        case SRC_MAX: {
-            for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = mask;
-                ref_1_data_[i] = 0;
-            }
-            break;
-        }
-        case RANDOM: {
-            for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = rnd->random();
-                ref_1_data_[i] = rnd->random();
-            }
-        } break;
-        case UNALIGN: {
-            for (int i = 0; i < MAX_BLOCK_SIZE; i++) {
-                source_data_[i] = rnd->random();
-                ref_1_data_[i] = rnd->random();
-            }
-            source_stride_ -= 1;
-            ref_1_stride_ -= 1;
-        } break;
-        default: break;
-        }
-        delete rnd;
-    }
 
   protected:
     void check_get_eight() {
-        uint32_t best_sad8x8_1[4], best_mv8x8_1[4], best_sad16x16_1,
-            best_mv16x16_1;
-        uint16_t sad16x16_1[8];
+        uint32_t best_sad8x8_1[4] = {UINT_MAX, UINT_MAX, UINT_MAX, UINT_MAX};
+        uint32_t best_mv8x8_1[4] = {0};
+        uint32_t best_sad16x16_1 = UINT_MAX, best_mv16x16_1 = 0;
+        uint16_t sad16x16_1[8] = {0};
+
+        prepare_data();
+
         get_eight_horizontal_search_point_results_8x8_16x16_pu_sse41_intrin(
-            source_data_,
-            source_stride_,
-            ref_1_data_,
-            ref_1_stride_,
+            src_aligned_,
+            src_stride_,
+            ref1_aligned_,
+            ref1_stride_,
             best_sad8x8_1,
             best_mv8x8_1,
             &best_sad16x16_1,
@@ -614,14 +592,15 @@ class GetEightSadTest : public ::testing::TestWithParam<TestPattern> {
             sad16x16_1,
             false);
 
-        uint32_t best_sad8x8_2[4], best_mv8x8_2[4], best_sad16x16_2,
-            best_mv16x16_2;
-        uint16_t sad16x16_2[8];
+        uint32_t best_sad8x8_2[4] = {UINT_MAX, UINT_MAX, UINT_MAX, UINT_MAX};
+        uint32_t best_mv8x8_2[4] = {0};
+        uint32_t best_sad16x16_2 = UINT_MAX, best_mv16x16_2 = 0;
+        uint16_t sad16x16_2[8] = {0};
         get_eight_horizontal_search_point_results_8x8_16x16_pu_avx2_intrin(
-            source_data_,
-            source_stride_,
-            ref_1_data_,
-            ref_1_stride_,
+            src_aligned_,
+            src_stride_,
+            ref1_aligned_,
+            ref1_stride_,
             best_sad8x8_2,
             best_mv8x8_2,
             &best_sad16x16_2,
@@ -629,18 +608,14 @@ class GetEightSadTest : public ::testing::TestWithParam<TestPattern> {
             0,
             sad16x16_2,
             false);
-        EXPECT_EQ(0, memcmp(best_sad8x8_1, best_sad8x8_2, 4));
-        EXPECT_EQ(0, memcmp(best_mv8x8_1, best_mv8x8_2, 4));
+
+        EXPECT_EQ(0,
+                  memcmp(best_sad8x8_1, best_sad8x8_2, sizeof(best_sad8x8_1)));
+        EXPECT_EQ(0, memcmp(best_mv8x8_1, best_mv8x8_2, sizeof(best_mv8x8_1)));
         EXPECT_EQ(best_sad16x16_1, best_sad16x16_2);
         EXPECT_EQ(best_mv16x16_1, best_mv16x16_2);
-        EXPECT_EQ(sad16x16_1, sad16x16_2);
+        EXPECT_EQ(0, memcmp(sad16x16_1, sad16x16_2, sizeof(sad16x16_1)));
     }
-    int source_stride_;
-    int ref_1_stride_;
-    TestPattern vector_param_;
-
-    DECLARE_ALIGNED(32, uint8_t, source_data_[MAX_BLOCK_SIZE]);
-    DECLARE_ALIGNED(32, uint8_t, ref_1_data_[MAX_BLOCK_SIZE]);
 };
 
 TEST_P(GetEightSadTest, GetEightSadTest) {
