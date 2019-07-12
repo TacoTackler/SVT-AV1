@@ -11,6 +11,7 @@
  * @author Cidana-Wenyao
  *
  ******************************************************************************/
+
 #include "gtest/gtest.h"
 #include <stdlib.h>
 // workaround to eliminate the compiling warning on linux
@@ -27,263 +28,191 @@
 #include "EbUtility.h"
 #include "aom_dsp_rtcd.h"
 #include "util.h"
+
 namespace {
 using ::testing::make_tuple;
 using ::testing::tuple;
 using svt_av1_test_tool::SVTRandom;
 
-void av1_loop_restoration_precal() {
-#if 0
-  GenSgrprojVtable();
-#endif
-}
+using SgrFunc = void (*)(const uint8_t *dat8, int width, int height, int stride,
+                         int eps, const int *xqd, uint8_t *dst8, int dst_stride,
+                         int32_t *tmpbuf, int bit_depth, int highbd);
 
-typedef void (*SgrFunc)(const uint8_t *dat8, int width, int height, int stride,
-                        int eps, const int *xqd, uint8_t *dst8, int dst_stride,
-                        int32_t *tmpbuf, int bit_depth, int highbd);
-
-// Test parameter list:
-//  <tst_fun_>
-typedef tuple<SgrFunc> FilterTestParam;
-
-class AV1SelfguidedFilterTest
-    : public ::testing::TestWithParam<FilterTestParam> {
+typedef tuple<SgrFunc, int> FilterTestParam;
+template <typename Sample>
+class SelfGuidedFilterTest : public ::testing::TestWithParam<FilterTestParam> {
   public:
-    virtual ~AV1SelfguidedFilterTest() {
+    virtual ~SelfGuidedFilterTest() {
     }
+
     virtual void SetUp() {
+        input_data_ = (Sample *)aom_memalign(
+            32, in_stride_ * (max_h_ + 32) * sizeof(Sample));
+        output_tst_data_ = (Sample *)aom_memalign(
+            32, out_stride_ * (max_h_ + 32) * sizeof(Sample));
+        output_ref_data_ = (Sample *)aom_memalign(
+            32, out_stride_ * (max_h_ + 32) * sizeof(Sample));
+        tmpbuf_ = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+
+        input_ = input_data_ + in_stride_ * 16 + 16;
+        output_tst_ = output_tst_data_ + out_stride_ * 16 + 16;
+        output_ref_ = output_ref_data_ + out_stride_ * 16 + 16;
+        ref_fun_ = apply_selfguided_restoration_c;
     }
 
     virtual void TearDown() {
+        aom_free(input_data_);
+        aom_free(output_tst_data_);
+        aom_free(output_ref_data_);
+        aom_free(tmpbuf_);
         aom_clear_system_state();
     }
 
   protected:
     void RunCorrectnessTest() {
         tst_fun_ = TEST_GET_PARAM(0);
-        const int pu_width = RESTORATION_PROC_UNIT_SIZE;
-        const int pu_height = RESTORATION_PROC_UNIT_SIZE;
-        // Set the maximum width/height to test here. We actually test a small
-        // range of sizes *up to* this size, so that we can check, eg.,
-        // the behaviour on tiles which are not a multiple of 4 wide.
-        const int max_w = 260, max_h = 260, stride = 672, out_stride = 672;
-        const int NUM_ITERS = 81;
+        bit_depth_ = TEST_GET_PARAM(1);
+
         int i, j, k;
-        int bit_depth = 8;
+        SVTRandom rnd(bit_depth_, false);
+        for (i = 0; i < NUM_ITERS_; ++i) {
+            // prepare random data
+            for (j = -16; j < max_h_ + 16; ++j)
+                for (k = -16; k < max_w_ + 16; ++k)
+                    input_[j * in_stride_ + k] = rnd.random();
 
-        uint8_t *input_ = (uint8_t *)aom_memalign(
-            32, stride * (max_h + 32) * sizeof(uint8_t));
-        uint8_t *output_ = (uint8_t *)aom_memalign(
-            32, out_stride * (max_h + 32) * sizeof(uint8_t));
-        uint8_t *output2_ = (uint8_t *)aom_memalign(
-            32, out_stride * (max_h + 32) * sizeof(uint8_t));
-        int32_t *tmpbuf = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
-
-        uint8_t *input = input_ + stride * 16 + 16;
-        uint8_t *output = output_ + out_stride * 16 + 16;
-        uint8_t *output2 = output2_ + out_stride * 16 + 16;
-
-        // ACMRandom rnd(ACMRandom::DeterministicSeed());
-        SVTRandom rnd(bit_depth, false);
-        av1_loop_restoration_precal();
-
-        for (i = 0; i < NUM_ITERS; ++i) {
-            for (j = -16; j < max_h + 16; ++j)
-                for (k = -16; k < max_w + 16; ++k)
-                    input[j * stride + k] =
-                        rnd.random();  // rnd.Rand16() & 0xFF;
-
-            SVTRandom rnd1(0, SGRPROJ_PRJ_MAX0 + 1 - SGRPROJ_PRJ_MIN0);
-            SVTRandom rnd2(0, SGRPROJ_PRJ_MAX1 + 1 - SGRPROJ_PRJ_MIN1);
+            SVTRandom xqd_rnd1(0, SGRPROJ_PRJ_MAX0 + 1 - SGRPROJ_PRJ_MIN0);
+            SVTRandom xqd_rnd2(0, SGRPROJ_PRJ_MAX1 + 1 - SGRPROJ_PRJ_MIN1);
             SVTRandom eps_rnd(0, 1 << SGRPROJ_PARAMS_BITS);
-            int xqd[2] = {SGRPROJ_PRJ_MIN0 + rnd1.random(),
-                          SGRPROJ_PRJ_MIN1 + rnd2.random()};
+            int xqd[2] = {SGRPROJ_PRJ_MIN0 + xqd_rnd1.random(),
+                          SGRPROJ_PRJ_MIN1 + xqd_rnd2.random()};
             int eps = eps_rnd.random();
 
             // Test various tile sizes around 256x256
-            int test_w = max_w - (i / 9);
-            int test_h = max_h - (i % 9);
+            int test_w = max_w_ - (i / 9);
+            int test_h = max_h_ - (i % 9);
 
-            for (k = 0; k < test_h; k += pu_height)
-                for (j = 0; j < test_w; j += pu_width) {
-                    int w = AOMMIN(pu_width, test_w - j);
-                    int h = AOMMIN(pu_height, test_h - k);
-                    uint8_t *input_p = input + k * stride + j;
-                    uint8_t *output_p = output + k * out_stride + j;
-                    uint8_t *output2_p = output2 + k * out_stride + j;
-                    tst_fun_(input_p,
-                             w,
-                             h,
-                             stride,
-                             eps,
-                             xqd,
-                             output_p,
-                             out_stride,
-                             tmpbuf,
-                             8,
-                             0);
-                    apply_selfguided_restoration_c(input_p,
-                                                   w,
-                                                   h,
-                                                   stride,
-                                                   eps,
-                                                   xqd,
-                                                   output2_p,
-                                                   out_stride,
-                                                   tmpbuf,
-                                                   8,
-                                                   0);
+            for (k = 0; k < test_h; k += pu_height_) {
+                for (j = 0; j < test_w; j += pu_width_) {
+                    int w = AOMMIN(pu_width_, test_w - j);
+                    int h = AOMMIN(pu_height_, test_h - k);
+                    run_filter(j, k, w, h, eps, xqd);
                 }
+            }
 
-            for (j = 0; j < test_h; ++j)
+            for (j = 0; j < test_h; ++j) {
                 for (k = 0; k < test_w; ++k) {
-                    ASSERT_EQ(output[j * out_stride + k],
-                              output2[j * out_stride + k]);
+                    ASSERT_EQ(output_tst_[j * out_stride_ + k],
+                              output_ref_[j * out_stride_ + k]);
                 }
+            }
         }
-
-        aom_free(input_);
-        aom_free(output_);
-        aom_free(output2_);
-        aom_free(tmpbuf);
     }
 
-  private:
+    virtual void run_filter(int offset_x, int offset_y, int width, int height,
+                            int eps, int *xqd) = 0;
+
+  protected:
     SgrFunc tst_fun_;
+    SgrFunc ref_fun_;
+    int bit_depth_;
+    Sample *input_data_;
+    Sample *output_tst_data_;
+    Sample *output_ref_data_;
+    int32_t *tmpbuf_;
+    Sample *input_;
+    Sample *output_tst_;
+    Sample *output_ref_;
+    static const int pu_width_ = RESTORATION_PROC_UNIT_SIZE;
+    static const int pu_height_ = RESTORATION_PROC_UNIT_SIZE;
+    // Set the maximum width/height to test here. We actually test a small
+    // range of sizes *up to* this size, so that we can check, eg.,
+    // the behaviour on tiles which are not a multiple of 4 wide.
+    static const int max_w_ = 260, max_h_ = 260, in_stride_ = 672,
+                     out_stride_ = 672;
+    static const int NUM_ITERS_ = 81;
 };
 
-TEST_P(AV1SelfguidedFilterTest, CorrectnessTest) {
+class LbdSelfGuidedFilterTest : public SelfGuidedFilterTest<uint8_t> {
+    void run_filter(int offset_x, int offset_y, int width, int height, int eps,
+                    int *xqd) override {
+        uint8_t *input_p = input_ + offset_y * in_stride_ + offset_x;
+        uint8_t *output_tst_p = output_tst_ + offset_y * out_stride_ + offset_x;
+        uint8_t *output_ref_p = output_ref_ + offset_y * out_stride_ + offset_x;
+        tst_fun_(input_p,
+                 width,
+                 height,
+                 in_stride_,
+                 eps,
+                 xqd,
+                 output_tst_p,
+                 out_stride_,
+                 tmpbuf_,
+                 bit_depth_,
+                 0);
+        ref_fun_(input_p,
+                 width,
+                 height,
+                 in_stride_,
+                 eps,
+                 xqd,
+                 output_ref_p,
+                 out_stride_,
+                 tmpbuf_,
+                 bit_depth_,
+                 0);
+    }
+};
+
+TEST_P(LbdSelfGuidedFilterTest, CorrectnessTest) {
     RunCorrectnessTest();
 }
 
-INSTANTIATE_TEST_CASE_P(AVX2, AV1SelfguidedFilterTest,
-                        ::testing::Values(apply_selfguided_restoration_avx2));
+INSTANTIATE_TEST_CASE_P(
+    DeblockTest, LbdSelfGuidedFilterTest,
+    ::testing::Combine(::testing::Values(apply_selfguided_restoration_avx2),
+                       ::testing::Values(8)));
 
-// Test parameter list:
-//  <tst_fun_, bit_depth>
-typedef tuple<SgrFunc, int> HighbdFilterTestParam;
-
-class AV1HighbdSelfguidedFilterTest
-    : public ::testing::TestWithParam<HighbdFilterTestParam> {
-  public:
-    virtual ~AV1HighbdSelfguidedFilterTest() {
+class HbdSelfGuidedFilterTest : public SelfGuidedFilterTest<uint16_t> {
+    void run_filter(int offset_x, int offset_y, int width, int height, int eps,
+                    int *xqd) override {
+        uint16_t *input_p = input_ + offset_y * in_stride_ + offset_x;
+        uint16_t *output_tst_p =
+            output_tst_ + offset_y * out_stride_ + offset_x;
+        uint16_t *output_ref_p =
+            output_ref_ + offset_y * out_stride_ + offset_x;
+        tst_fun_(CONVERT_TO_BYTEPTR(input_p),
+                 width,
+                 height,
+                 in_stride_,
+                 eps,
+                 xqd,
+                 CONVERT_TO_BYTEPTR(output_tst_p),
+                 out_stride_,
+                 tmpbuf_,
+                 bit_depth_,
+                 1);
+        ref_fun_(CONVERT_TO_BYTEPTR(input_p),
+                 width,
+                 height,
+                 in_stride_,
+                 eps,
+                 xqd,
+                 CONVERT_TO_BYTEPTR(output_ref_p),
+                 out_stride_,
+                 tmpbuf_,
+                 bit_depth_,
+                 1);
     }
-    virtual void SetUp() {
-    }
-
-    virtual void TearDown() {
-        aom_clear_system_state();
-    }
-
-  protected:
-    void RunCorrectnessTest() {
-        tst_fun_ = TEST_GET_PARAM(0);
-        const int pu_width = RESTORATION_PROC_UNIT_SIZE;
-        const int pu_height = RESTORATION_PROC_UNIT_SIZE;
-        // Set the maximum width/height to test here. We actually test a small
-        // range of sizes *up to* this size, so that we can check, eg.,
-        // the behaviour on tiles which are not a multiple of 4 wide.
-        const int max_w = 260, max_h = 260, stride = 672, out_stride = 672;
-        const int NUM_ITERS = 81;
-        int i, j, k;
-        int bit_depth = TEST_GET_PARAM(1);
-
-        uint16_t *input_ = (uint16_t *)aom_memalign(
-            32, stride * (max_h + 32) * sizeof(uint16_t));
-        uint16_t *output_ = (uint16_t *)aom_memalign(
-            32, out_stride * (max_h + 32) * sizeof(uint16_t));
-        uint16_t *output2_ = (uint16_t *)aom_memalign(
-            32, out_stride * (max_h + 32) * sizeof(uint16_t));
-        int32_t *tmpbuf = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
-
-        uint16_t *input = input_ + stride * 16 + 16;
-        uint16_t *output = output_ + out_stride * 16 + 16;
-        uint16_t *output2 = output2_ + out_stride * 16 + 16;
-
-        // ACMRandom rnd(ACMRandom::DeterministicSeed());
-        SVTRandom rnd(bit_depth, false);
-
-        av1_loop_restoration_precal();
-
-        for (i = 0; i < NUM_ITERS; ++i) {
-            for (j = -16; j < max_h + 16; ++j)
-                for (k = -16; k < max_w + 16; ++k)
-                    input[j * stride + k] = rnd.random();
-
-#if 0
-      int xqd[2] = { SGRPROJ_PRJ_MIN0 + rnd.PseudoUniform(SGRPROJ_PRJ_MAX0 + 1 -
-                                                          SGRPROJ_PRJ_MIN0),
-                     SGRPROJ_PRJ_MIN1 + rnd.PseudoUniform(SGRPROJ_PRJ_MAX1 + 1 -
-                                                          SGRPROJ_PRJ_MIN1) };
-      int eps = rnd.PseudoUniform(1 << SGRPROJ_PARAMS_BITS);
-#else
-            SVTRandom rnd1(0, SGRPROJ_PRJ_MAX0 + 1 - SGRPROJ_PRJ_MIN0);
-            SVTRandom rnd2(0, SGRPROJ_PRJ_MAX1 + 1 - SGRPROJ_PRJ_MIN1);
-            SVTRandom eps_rnd(0, 1 << SGRPROJ_PARAMS_BITS);
-            int xqd[2] = {SGRPROJ_PRJ_MIN0 + rnd1.random(),
-                          SGRPROJ_PRJ_MIN1 + rnd2.random()};
-            int eps = eps_rnd.random();
-#endif
-
-            // Test various tile sizes around 256x256
-            int test_w = max_w - (i / 9);
-            int test_h = max_h - (i % 9);
-
-            for (k = 0; k < test_h; k += pu_height)
-                for (j = 0; j < test_w; j += pu_width) {
-                    int w = AOMMIN(pu_width, test_w - j);
-                    int h = AOMMIN(pu_height, test_h - k);
-                    uint16_t *input_p = input + k * stride + j;
-                    uint16_t *output_p = output + k * out_stride + j;
-                    uint16_t *output2_p = output2 + k * out_stride + j;
-                    tst_fun_(CONVERT_TO_BYTEPTR(input_p),
-                             w,
-                             h,
-                             stride,
-                             eps,
-                             xqd,
-                             CONVERT_TO_BYTEPTR(output_p),
-                             out_stride,
-                             tmpbuf,
-                             bit_depth,
-                             1);
-                    apply_selfguided_restoration_c(
-                        CONVERT_TO_BYTEPTR(input_p),
-                        w,
-                        h,
-                        stride,
-                        eps,
-                        xqd,
-                        CONVERT_TO_BYTEPTR(output2_p),
-                        out_stride,
-                        tmpbuf,
-                        bit_depth,
-                        1);
-                }
-
-            for (j = 0; j < test_h; ++j)
-                for (k = 0; k < test_w; ++k)
-                    ASSERT_EQ(output[j * out_stride + k],
-                              output2[j * out_stride + k]);
-        }
-
-        aom_free(input_);
-        aom_free(output_);
-        aom_free(output2_);
-        aom_free(tmpbuf);
-    }
-
-  private:
-    SgrFunc tst_fun_;
 };
 
-TEST_P(AV1HighbdSelfguidedFilterTest, CorrectnessTest) {
+TEST_P(HbdSelfGuidedFilterTest, CorrectnessTest) {
     RunCorrectnessTest();
 }
 
 const int highbd_params_avx2[] = {8, 10, 12};
 INSTANTIATE_TEST_CASE_P(
-    AVX2, AV1HighbdSelfguidedFilterTest,
+    DeblockTest, HbdSelfGuidedFilterTest,
     ::testing::Combine(::testing::Values(apply_selfguided_restoration_avx2),
                        ::testing::ValuesIn(highbd_params_avx2)));
 }  // namespace
