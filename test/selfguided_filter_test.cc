@@ -482,6 +482,100 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Combine(::testing::Values(apply_selfguided_restoration_avx2),
                        ::testing::ValuesIn(highbd_params_avx2)));
 
+// test get_proj_subspace
+TEST(SelfGuidedToolsTest, GetProjSubspaceMatchTest) {
+    const int32_t pu_width = RESTORATION_PROC_UNIT_SIZE;
+    const int32_t pu_height = RESTORATION_PROC_UNIT_SIZE;
+    const int32_t width = 256, height = 256, stride = 288, out_stride = 288;
+    const int NUM_ITERS = 2000;
+    int i, j, k;
+
+    uint8_t *input_ =
+        (uint8_t *)aom_memalign(32, stride * (height + 32) * sizeof(uint8_t));
+    uint8_t *output_ = (uint8_t *)aom_memalign(
+        32, out_stride * (height + 32) * sizeof(uint8_t));
+    int32_t *tmpbuf = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+    uint8_t *input = input_ + stride * 16 + 16;
+    uint8_t *output = output_ + out_stride * 16 + 16;
+    int32_t *flt0 = tmpbuf;
+    int32_t *flt1 = flt0 + RESTORATION_UNITPELS_MAX;
+    int32_t flt_stride = ((width + 7) & ~7) + 8;
+
+    // check all the sg params
+    ACMRandom rnd(ACMRandom::DeterministicSeed());
+    for (int iter = 0; iter < NUM_ITERS; ++iter) {
+        // prepare src data and recon data
+        for (i = -16; i < height + 16; ++i) {
+            for (j = -16; j < width + 16; ++j) {
+                input[i * stride + j] = rnd.Rand16() & 0xFF;
+                output[i * stride + j] = rnd.Rand16() & 0xFF;
+            }
+        }
+
+        for (int32_t ep = 0; ep < SGRPROJ_PARAMS; ++ep) {
+            // apply selfguided filter to get A and B
+            for (k = 0; k < height; k += pu_height) {
+                for (j = 0; j < width; j += pu_width) {
+                    int32_t w = AOMMIN(pu_width, width - j);
+                    int32_t h = AOMMIN(pu_height, height - k);
+                    uint8_t *output_p = output + k * out_stride + j;
+                    int32_t *flt0_p = flt0 + k * flt_stride + j;
+                    int32_t *flt1_p = flt1 + k * flt_stride + j;
+                    assert(w * h <= RESTORATION_UNITPELS_MAX);
+
+                    av1_selfguided_restoration_avx2(output_p,
+                                                    w,
+                                                    h,
+                                                    out_stride,
+                                                    flt0_p,
+                                                    flt1_p,
+                                                    flt_stride,
+                                                    ep,
+                                                    8,
+                                                    0);
+                }
+            }
+
+            aom_clear_system_state();
+            int32_t xqd_c[2] = {0};
+            int32_t xqd_asm[2] = {0};
+            const SgrParamsType *const params = &sgr_params[ep];
+            get_proj_subspace_c(input,
+                                width,
+                                height,
+                                stride,
+                                output,
+                                out_stride,
+                                0,
+                                flt0,
+                                flt_stride,
+                                flt1,
+                                flt_stride,
+                                xqd_c,
+                                params);
+            get_proj_subspace_avx2(input,
+                                   width,
+                                   height,
+                                   stride,
+                                   output,
+                                   out_stride,
+                                   0,
+                                   flt0,
+                                   flt_stride,
+                                   flt1,
+                                   flt_stride,
+                                   xqd_asm,
+                                   params);
+            ASSERT_EQ(xqd_c[0], xqd_asm[0]);
+            ASSERT_EQ(xqd_c[1], xqd_asm[1]);
+        }
+    }
+
+    aom_free(input_);
+    aom_free(output_);
+    aom_free(tmpbuf);
+}
+
 #if 0
 // To test integral_images() and integral_images_highbd(), make them not static,
 // and add declarations to header file.
