@@ -20,6 +20,7 @@
 #include "RefDecoder.h"
 #include "SvtAv1E2EFramework.h"
 #include "CompareTools.h"
+#include "ConfigEncoder.h"
 
 #if _WIN32
 #define fseeko64 _fseeki64
@@ -97,6 +98,8 @@ SvtAv1E2ETestFramework::SvtAv1E2ETestFramework() : enc_setting(GetParam()) {
     enable_stat = false;
     enable_save_bitstream = false;
     enable_analyzer = false;
+    enable_config = false;
+    enc_config_ = create_enc_config();
 }
 
 SvtAv1E2ETestFramework::~SvtAv1E2ETestFramework() {
@@ -104,13 +107,30 @@ SvtAv1E2ETestFramework::~SvtAv1E2ETestFramework() {
         delete collect_;
         collect_ = nullptr;
     }
+    if (enc_config_) {
+        release_enc_config(enc_config_);
+        enc_config_ = nullptr;
+    }
 }
 
 void SvtAv1E2ETestFramework::config_test() {
     enable_stat = true;
+    if (enable_config) {
+        // iterate the mappings and update config
+        for (auto &x : enc_setting.setting) {
+            set_enc_config(enc_config_, x.first.c_str(), x.second.c_str());
+            printf("EncSetting: %s = %s\n", x.first.c_str(), x.second.c_str());
+        }
+    }
 }
 
 void SvtAv1E2ETestFramework::update_enc_setting() {
+    if (enable_config) {
+        copy_enc_param(&av1enc_ctx_.enc_params, enc_config_);
+        setup_src_param(video_src_, av1enc_ctx_.enc_params);
+        if (recon_queue_)
+            av1enc_ctx_.enc_params.recon_enabled = 1;
+    }
 }
 
 void SvtAv1E2ETestFramework::post_process() {
