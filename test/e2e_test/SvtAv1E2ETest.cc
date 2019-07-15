@@ -53,6 +53,8 @@ class CrashDeathTest : public SvtAv1E2ETestFramework {
   protected:
     void config_test() override {
         enable_stat = true;
+        enable_config = true;
+        SvtAv1E2ETestFramework::config_test();
     }
 };
 
@@ -86,6 +88,8 @@ class ConformanceDeathTest : public SvtAv1E2ETestFramework {
         enable_decoder = true;
         enable_recon = true;
         enable_stat = true;
+        enable_config = true;
+        SvtAv1E2ETestFramework::config_test();
     }
 };
 
