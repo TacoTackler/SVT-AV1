@@ -169,6 +169,7 @@ static const std::vector<EncTestSetting> default_enc_settings = {
 
     {"SpeedControlTest1", {{"SpeedControlFlag", "1"}}, default_test_vectors},
 
+
     // Validate by setting a low bitrate and MaxQpAllowed, push the encoder to producing
     // large partitions.
     {"IncompleteSbTest1",
