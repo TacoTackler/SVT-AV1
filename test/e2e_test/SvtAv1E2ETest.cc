@@ -94,6 +94,11 @@ TEST_P(ConformanceDeathTest, DefaultSettingTest) {
 }
 
 /* clang-format off */
+std::vector<TestVideoVector> parkjoy = {
+    std::make_tuple("park_joy_90p_8_420.y4m", Y4M_VIDEO_FILE, IMG_FMT_420, 160,
+                    90, 8, 0, 0, 0),
+};
+
 static const std::vector<EncTestSetting> default_enc_settings = {
     {"EncModeTest1", {{"EncoderMode", "1"}}, default_test_vectors},
     {"EncModeTest2", {{"EncoderMode", "3"}}, default_test_vectors},
@@ -159,6 +164,17 @@ static const std::vector<EncTestSetting> default_enc_settings = {
     {"TileTest3", {{"TileCol", "1"}, {"TileRow", "1"}}, default_test_vectors},
 
     {"SpeedControlTest1", {{"SpeedControlFlag", "1"}}, default_test_vectors},
+
+    // Validate by setting a low bitrate and MaxQpAllowed, push the encoder to producing
+    // large partitions.
+    {"IncompleteSbTest1",
+     {{"RateControlMode", "2"}, {"TargetBitRate", "100000"}, {"MaxQpAllowed", "40"}},
+     parkjoy},
+    // Validate by setting a high bitrate and MinQpAllowed, push the encoder to producing
+    // small partitions.
+    {"IncompleteSbTest2",
+     {{"RateControlMode", "2"}, {"TargetBitRate", "1000000"}, {"MixQpAllowed", "10"}},
+     parkjoy}
 };
 /* clang-format on */
 INSTANTIATE_TEST_CASE_P(SvtAv1, ConformanceDeathTest,
