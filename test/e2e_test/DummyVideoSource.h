@@ -156,6 +156,7 @@ class DummyVideoSource : public VideoSource {
 
   protected:
     uint8_t *single_line_pattern[3];
+
 };
 }  // namespace svt_av1_video_source
 #endif  //_SVT_TEST_DUMMY_VIDEO_SOURCE_H_
