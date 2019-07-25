@@ -179,3 +179,46 @@ INSTANTIATE_TEST_CASE_P(SvtAv1, LongtimeConformanceTest,
                         ::testing::ValuesIn(generate_vector_from_config(
                             "longtime_comformance_test.cfg")),
                         EncTestSetting::GetSettingName);
+/**
+ * @brief SVT-AV1 encoder E2E test with comparing the reconstructed frame with
+ * output frame from decoder buffer list when the tile is inverted to prove
+ * tile independence.
+ *
+ * Test strategy:
+ * Setup SVT-AV1 encoder with different tile parameter, and encode the input YUV
+ * data frames. Do the decode in inverted tile ordering and collect the
+ * reconstructed frames and compared them with reference decoder output.
+ *
+ * Expected result:
+ * No error is reported in encoding progress. The reconstructed frame data is
+ * same as the output frame from reference decoder,which proved tiles are
+ * considered independent and the test passes.
+ *
+ * Test coverage:
+ * All test vectors of 640*480 */
+
+class TileIndependenceTest : public SvtAv1E2ETestFramework {
+  protected:
+    void config_test() override {
+        enable_decoder = true;
+        enable_recon = true;
+        enable_stat = true;
+        enable_config = true;
+        enable_invert_tile_decoding = true;
+        SvtAv1E2ETestFramework::config_test();
+    }
+};
+
+TEST_P(TileIndependenceTest, TileTest) {
+    run_death_test();
+}
+
+static const std::vector<EncTestSetting> tile_settings = {
+    {"TileTest1", {{"TileCol", "0"}, {"TileRow", "0"}}, default_test_vectors},
+    {"TileTest2", {{"TileCol", "0"}, {"TileRow", "1"}}, default_test_vectors},
+    {"TileTest3", {{"TileCol", "1"}, {"TileRow", "0"}}, default_test_vectors},
+    {"TileTest4", {{"TileCol", "1"}, {"TileRow", "1"}}, default_test_vectors}};
+
+INSTANTIATE_TEST_CASE_P(TILETEST, TileIndependenceTest,
+                        ::testing::ValuesIn(tile_settings),
+                        EncTestSetting::GetSettingName);

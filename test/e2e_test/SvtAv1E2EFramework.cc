@@ -246,6 +246,8 @@ void SvtAv1E2ETestFramework::init_test(TestVideoVector &test_vector) {
     // create reference decoder if required.
     if (enable_decoder) {
         refer_dec_ = create_reference_decoder(enable_analyzer);
+        if (enable_invert_tile_decoding)
+            refer_dec_->set_invert_tile_decoding_order();
         ASSERT_NE(refer_dec_, nullptr) << "can not create reference decoder!!";
     }
 
