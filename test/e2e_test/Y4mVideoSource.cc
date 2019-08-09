@@ -31,6 +31,7 @@ Y4MVideoSource::Y4MVideoSource(const std::string& file_name,
                                const bool use_compressed_2bit_plane_output)
     : VideoFileSource(file_name, format, width, height, bit_depth,
                       use_compressed_2bit_plane_output) {
+    src_name_ = "Y4M Source";
     header_length_ = 0;
 }
 
@@ -60,16 +61,8 @@ EbErrorType Y4MVideoSource::parse_file_info() {
     bit_depth_ = cfg.encoder_bit_depth;
     svt_compressed_2bit_plane_ = cfg.compressed_ten_bit_format;
 
-    // Workaround, check_if_y4m can not output color format
-    // and svt-av1 encoder support yuv420 color format only in current version,
-    // so use bit_depth to get iamge format.
-    if (bit_depth_ > 8) {
-        if (svt_compressed_2bit_plane_)
-            image_format_ = IMG_FMT_420P10_PACKED;
-        else
-            image_format_ = IMG_FMT_420;
-    } else
-        image_format_ = IMG_FMT_420;
+    // y4m video source use the color format type from test vector param for
+    // "read_y4m_header" does not output color format info
 
     cal_yuv_plane_param();
 
@@ -82,13 +75,6 @@ EbErrorType Y4MVideoSource::parse_file_info() {
 
     // Calculate frame count
     file_frames_ = (file_length_ - header_length_) / frame_length_;
-
-    printf("File len:%d; frame w:%d, h:%d, frame len:%d; frame count:%d\r\n",
-           file_length_,
-           width_,
-           height_,
-           frame_length_,
-           file_frames_);
 
     return EB_ErrorNone;
 }
