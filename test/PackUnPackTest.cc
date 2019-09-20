@@ -551,9 +551,12 @@ TEST_P(UnPackTest, UnPack2dTest) {
 INSTANTIATE_TEST_CASE_P(UNPACK, UnPackTest,
                         ::testing::ValuesIn(TEST_COMMON_SIZES));
 
-// test unpack_avg_avx2_intrin
-// only width of {8, 16, 32, 64} are implemented in unpack_avg_avx2_intrin.
-// use TEST_AVG_SIZES to cover all the cases.
+// test
+// unpack_avg_avx2_intrin,unpack_avg_sse2_intrin,unpack_avg_safe_sub_avx2_intrin
+// only width of {4, 8, 16, 32, 64} are implemented in
+// unpack_avg_avx2_intrin,unpack_avg_sse2_intrin only width of {8, 16, 32, 64}
+// are implemented in unpack_avg_safe_sub_avx2_intrin use TEST_AVG_SIZES to
+// cover all the cases.
 AreaSize TEST_AVG_SIZES[] = {AreaSize(4, 4),
                              AreaSize(4, 8),
                              AreaSize(8, 4),
