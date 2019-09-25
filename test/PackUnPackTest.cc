@@ -254,8 +254,9 @@ class PackMsbTest : public ::testing::Test,
                          out_16bit_buffer2_);
 
             EXPECT_FALSE(HasFailure())
-                << "compressed_packmsb_avx2_intrin failed at " << i << "th test with size ("
-                << area_width_ << "," << area_height_ << ")";
+                << "compressed_packmsb_avx2_intrin failed at " << i
+                << "th test with size (" << area_width_ << "," << area_height_
+                << ")";
         }
     }
 
@@ -389,8 +390,9 @@ class Pack2dTest : public ::testing::Test,
                          out_16bit_buffer_c_);
 
             EXPECT_FALSE(HasFailure())
-                << "eb_enc_msb_pack2d_{sse2,avx2}_intrin failed at " << i << "th test with size ("
-                << area_width_ << "," << area_height_ << ")";
+                << "eb_enc_msb_pack2d_{sse2,avx2}_intrin failed at " << i
+                << "th test with size (" << area_width_ << "," << area_height_
+                << ")";
         }
     }
 
@@ -493,8 +495,9 @@ class UnPackTest : public ::testing::Test,
                          out_8bit_buffer2_);
 
             EXPECT_FALSE(HasFailure())
-                << "eb_enc_un_pack8_bit_data_avx2_intrin failed at " << i << "th test with size ("
-                << area_width_ << "," << area_height_ << ")";
+                << "eb_enc_un_pack8_bit_data_avx2_intrin failed at " << i
+                << "th test with size (" << area_width_ << "," << area_height_
+                << ")";
         }
     }
 
@@ -528,8 +531,9 @@ class UnPackTest : public ::testing::Test,
                          out_nbit_buffer2_);
 
             EXPECT_FALSE(HasFailure())
-                << "eb_enc_msb_un_pack2d_sse2_intrin failed at " << i << "th test with size ("
-                << area_width_ << "," << area_height_ << ")";
+                << "eb_enc_msb_un_pack2d_sse2_intrin failed at " << i
+                << "th test with size (" << area_width_ << "," << area_height_
+                << ")";
         }
     }
 
@@ -673,8 +677,9 @@ class UnPackAvgTest : public ::testing::Test,
                          out_8bit_buffer_c_);
 
             EXPECT_FALSE(HasFailure())
-                << "unpack_avg_{sse2,avx2}_intrin failed at " << i << "th test with size ("
-                << area_width_ << "," << area_height_ << ")";
+                << "unpack_avg_{sse2,avx2}_intrin failed at " << i
+                << "th test with size (" << area_width_ << "," << area_height_
+                << ")";
         }
     }
 
@@ -707,8 +712,9 @@ class UnPackAvgTest : public ::testing::Test,
                          out_8bit_buffer_c_);
 
             EXPECT_FALSE(HasFailure())
-                << "unpack_avg_safe_sub_avx2_intrin failed at " << i << "th test with size ("
-                << area_width_ << "," << area_height_ << ")";
+                << "unpack_avg_safe_sub_avx2_intrin failed at " << i
+                << "th test with size (" << area_width_ << "," << area_height_
+                << ")";
         }
     }
 
