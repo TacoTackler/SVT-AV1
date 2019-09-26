@@ -201,7 +201,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss5 = _mm256_setzero_si256();
@@ -254,7 +254,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     s3 = _mm_setzero_si128();
@@ -315,7 +315,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -373,7 +373,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     s3 = s4 = _mm_setzero_si128();
@@ -434,7 +434,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -506,7 +506,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -601,7 +601,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -704,7 +704,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -802,7 +802,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -906,7 +906,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -1003,7 +1003,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -1117,7 +1117,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -1245,7 +1245,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     s3 = s4 = s5 = s6 = _mm_setzero_si128();
@@ -1388,7 +1388,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     s3 = s4 = s5 = s6 = _mm_setzero_si128();
@@ -1530,7 +1530,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = _mm256_setzero_si256();
@@ -1655,7 +1655,7 @@ void sad_loop_kernel_sparse_avx2_intrin(
                     }
                 }
 
-                if (leftover) {
+                if (leftover && startW) {
                     pSrc = src;
                     pRef = ref + j;
                     ss3 = ss4 = ss5 = ss6 = ss7 = ss8 = ss9 = ss10 = _mm256_setzero_si256();

@@ -943,8 +943,8 @@ class GetEightSadTest : public ::testing::WithParamInterface<SadCalTestParam>,
                 sad16x16_1,
                 false);
 
-            for (int j = 0; j < sizeof(get_eight_sad_8_16_func_table) /
-                                    sizeof(*get_eight_sad_8_16_func_table);
+            for (uint32_t j = 0; j < sizeof(get_eight_sad_8_16_func_table) /
+                                         sizeof(*get_eight_sad_8_16_func_table);
                  j++) {
                 uint32_t best_sad8x8_2[4] = {BEST_SAD_MAX, 0, BEST_SAD_MAX, 0};
                 uint32_t best_mv8x8_2[4] = {
@@ -1019,8 +1019,8 @@ class GetEightSadTest : public ::testing::WithParamInterface<SadCalTestParam>,
                                       middle_time_useconds,
                                       &time_c);
 
-        for (int i = 0; i < sizeof(get_eight_sad_8_16_func_table) /
-                                sizeof(*get_eight_sad_8_16_func_table);
+        for (uint32_t i = 0; i < sizeof(get_eight_sad_8_16_func_table) /
+                                     sizeof(*get_eight_sad_8_16_func_table);
              i++) {
             uint32_t best_sad8x8_2[4] = {BEST_SAD_MAX, 0, BEST_SAD_MAX, 0};
             uint32_t best_mv8x8_2[4] = {
@@ -1066,7 +1066,7 @@ class GetEightSadTest : public ::testing::WithParamInterface<SadCalTestParam>,
                                           &time_o);
 
             printf(
-                "get_eight_horizontal_search_point_results_8x8_16x16_pu(%d): "
+                "get_eight_horizontal_search_point_results_8x8_16x16_pu(%u): "
                 "%5.2fx)\n",
                 i,
                 time_c / time_o);
@@ -1092,8 +1092,9 @@ class GetEightSadTest : public ::testing::WithParamInterface<SadCalTestParam>,
                 &best_mv64x64_1,
                 mv);
 
-            for (int j = 0; j < sizeof(get_eight_sad_32_64_func_table) /
-                                    sizeof(*get_eight_sad_32_64_func_table);
+            for (uint32_t j = 0;
+                 j < sizeof(get_eight_sad_32_64_func_table) /
+                         sizeof(*get_eight_sad_32_64_func_table);
                  j++) {
                 uint32_t best_sad32x32_2[4];
                 uint32_t best_mv32x32_2[4] = {
@@ -1165,8 +1166,8 @@ class GetEightSadTest : public ::testing::WithParamInterface<SadCalTestParam>,
                                       middle_time_useconds,
                                       &time_c);
 
-        for (int i = 0; i < sizeof(get_eight_sad_32_64_func_table) /
-                                sizeof(*get_eight_sad_32_64_func_table);
+        for (uint32_t i = 0; i < sizeof(get_eight_sad_32_64_func_table) /
+                                     sizeof(*get_eight_sad_32_64_func_table);
              i++) {
             uint32_t best_mv32x32_2[4] = {
                 0x00010002, 0x0003FFF4, 0xFFF70008, 0xFFF9FFF1};
@@ -1207,7 +1208,7 @@ class GetEightSadTest : public ::testing::WithParamInterface<SadCalTestParam>,
                                           &time_o);
 
             printf(
-                "get_eight_horizontal_search_point_results_32x32_64x64_pu(%d): "
+                "get_eight_horizontal_search_point_results_32x32_64x64_pu(%u): "
                 "%5.2fx)\n",
                 i,
                 time_c / time_o);
