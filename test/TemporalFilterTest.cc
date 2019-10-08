@@ -25,16 +25,14 @@
 
 extern "C" {
 #include "EbTemporalFiltering_sse4.h"
-void apply_filtering_c(const uint8_t *y_src, int y_src_stride,
-                       const uint8_t *y_pre, int y_pre_stride,
-                       const uint8_t *u_src, const uint8_t *v_src,
-                       int uv_src_stride, const uint8_t *u_pre,
-                       const uint8_t *v_pre, int uv_pre_stride,
-                       unsigned int block_width, unsigned int block_height,
-                       int ss_x, int ss_y, int strength, const int *blk_fw,
-                       int use_whole_blk, uint32_t *y_accum, uint16_t *y_count,
-                       uint32_t *u_accum, uint16_t *u_count, uint32_t *v_accum,
-                       uint16_t *v_count);
+void svt_av1_apply_filtering_c(
+    const uint8_t *y_src, int y_src_stride, const uint8_t *y_pre,
+    int y_pre_stride, const uint8_t *u_src, const uint8_t *v_src,
+    int uv_src_stride, const uint8_t *u_pre, const uint8_t *v_pre,
+    int uv_pre_stride, unsigned int block_width, unsigned int block_height,
+    int ss_x, int ss_y, int strength, const int *blk_fw, int use_whole_blk,
+    uint32_t *y_accum, uint16_t *y_count, uint32_t *u_accum, uint16_t *u_count,
+    uint32_t *v_accum, uint16_t *v_count);
 }
 
 using svt_av1_test_tool::SVTRandom;  // to generate the random
@@ -50,7 +48,7 @@ BlockIndex TEST_BLOCK[] = {
 static const uint32_t index_16x16_from_subindexes[4][4] = {
     {0, 1, 4, 5}, {2, 3, 6, 7}, {8, 9, 12, 13}, {10, 11, 14, 15}};
 
-const int stride_pred_[COLOR_CHANNELS] = {BW, BW_CH, BW_CH};
+const int stride_pred_[COLOR_CHANNELS] = {BW, BW >> 1, BW >> 1};
 const int ALTREF_STRENGTH[] = {0, 1, 2, 3, 4, 5, 6};
 
 typedef std::tuple<BlockIndex, FilterWeightPattern, int> TestParam;
@@ -258,52 +256,52 @@ class TemporalFilterTest : public ::testing::Test,
             }
             prepare_data();
             init_param();
-            apply_filtering_c(src_ptr_[C_Y],
-                              stride_[C_Y],
-                              pred_ptr_[C_Y],
-                              stride_pred_[C_Y],
-                              src_ptr_[C_U],
-                              src_ptr_[C_V],
-                              stride_[C_U],
-                              pred_ptr_[C_U],
-                              pred_ptr_[C_V],
-                              stride_pred_[C_U],
-                              block_width_,
-                              block_height_,
-                              ss_x_,
-                              ss_y_,
-                              altref_strength_,
-                              blk_fw_32x32_,
-                              0,  // use_32x32
-                              accum_ptr1_[C_Y],
-                              count_ptr1_[C_Y],
-                              accum_ptr1_[C_U],
-                              count_ptr1_[C_U],
-                              accum_ptr1_[C_V],
-                              count_ptr1_[C_V]);
-            av1_apply_temporal_filter_sse4_1(src_ptr_[C_Y],
-                                             stride_[C_Y],
-                                             pred_ptr_[C_Y],
-                                             stride_pred_[C_Y],
-                                             src_ptr_[C_U],
-                                             src_ptr_[C_V],
-                                             stride_[C_U],
-                                             pred_ptr_[C_U],
-                                             pred_ptr_[C_V],
-                                             stride_pred_[C_U],
-                                             block_width_,
-                                             block_height_,
-                                             ss_x_,
-                                             ss_y_,
-                                             altref_strength_,
-                                             blk_fw_32x32_,
-                                             0,  // use_32x32
-                                             accum_ptr2_[C_Y],
-                                             count_ptr2_[C_Y],
-                                             accum_ptr2_[C_U],
-                                             count_ptr2_[C_U],
-                                             accum_ptr2_[C_V],
-                                             count_ptr2_[C_V]);
+            svt_av1_apply_filtering_c(src_ptr_[C_Y],
+                                      stride_[C_Y],
+                                      pred_ptr_[C_Y],
+                                      stride_pred_[C_Y],
+                                      src_ptr_[C_U],
+                                      src_ptr_[C_V],
+                                      stride_[C_U],
+                                      pred_ptr_[C_U],
+                                      pred_ptr_[C_V],
+                                      stride_pred_[C_U],
+                                      block_width_,
+                                      block_height_,
+                                      ss_x_,
+                                      ss_y_,
+                                      altref_strength_,
+                                      blk_fw_32x32_,
+                                      0,  // use_32x32
+                                      accum_ptr1_[C_Y],
+                                      count_ptr1_[C_Y],
+                                      accum_ptr1_[C_U],
+                                      count_ptr1_[C_U],
+                                      accum_ptr1_[C_V],
+                                      count_ptr1_[C_V]);
+            svt_av1_apply_temporal_filter_sse4_1(src_ptr_[C_Y],
+                                                 stride_[C_Y],
+                                                 pred_ptr_[C_Y],
+                                                 stride_pred_[C_Y],
+                                                 src_ptr_[C_U],
+                                                 src_ptr_[C_V],
+                                                 stride_[C_U],
+                                                 pred_ptr_[C_U],
+                                                 pred_ptr_[C_V],
+                                                 stride_pred_[C_U],
+                                                 block_width_,
+                                                 block_height_,
+                                                 ss_x_,
+                                                 ss_y_,
+                                                 altref_strength_,
+                                                 blk_fw_32x32_,
+                                                 0,  // use_32x32
+                                                 accum_ptr2_[C_Y],
+                                                 count_ptr2_[C_Y],
+                                                 accum_ptr2_[C_U],
+                                                 count_ptr2_[C_U],
+                                                 accum_ptr2_[C_V],
+                                                 count_ptr2_[C_V]);
 
             check_accum_output();
             check_count_output();
