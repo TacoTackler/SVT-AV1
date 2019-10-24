@@ -1,0 +1,1 @@
+Please download XMINDS to read .xmind file
