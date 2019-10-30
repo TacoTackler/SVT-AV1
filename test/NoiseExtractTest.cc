@@ -50,11 +50,12 @@ class ExtractFilterTest : public ::testing::Test {
   public:
     ExtractFilterTest() {
         // set the height and width not multiple of 64 to test the incomplete sb
-        width_ = 336;
+        width_ = 320;
         height_ = 240;
+        stride_ = 336;
 
         EbPictureBufferDescInitData pbd_init_data;
-        pbd_init_data.max_width = width_;
+        pbd_init_data.max_width = stride_;
         pbd_init_data.max_height = height_;
         pbd_init_data.bit_depth = EB_8BIT;
         // allocate all the components
@@ -290,6 +291,7 @@ class ExtractFilterTest : public ::testing::Test {
   protected:
     uint32_t width_;
     uint32_t height_;
+    uint32_t stride_;
 
     int subsampling_x_;
     int subsampling_y_;
