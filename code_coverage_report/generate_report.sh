@@ -57,6 +57,18 @@ if [ "$1" = "all" ]; then
 ./SvtAv1ApiTests --gtest_filter=EncApiTest.repeat_normal_setup
 fi
 
+# find all ivf files to decoder 
+for file_list in $(ls .)
+do
+    if [ ${file_list##*.} = "ivf" ]; then
+        # setup for output YUV file
+        output_yuv=${file_list%.*}.yuv
+		./SvtAv1DecApp -i ${file_list} -o ${output_yuv}
+        # delete the output YUV file to save disk space
+        rm -f ${output_yuv}
+    fi
+done
+
 # capture
 lcov --capture --base-directory $SOURCE_DIR --directory . --output-file svt_av1_test.info
 
@@ -64,6 +76,6 @@ lcov --capture --base-directory $SOURCE_DIR --directory . --output-file svt_av1_
 lcov --add-tracefile svt_av1_base.info --add-tracefile svt_av1_test.info --output-file $BUILD_DIR/svt_av1_total.info
 
 # remove unwanted
-lcov -r svt_av1_total.info "*third_party*" "*test*" "*/usr/*" "*App*" "*Decoder*" -o svt_av1_final.info
+lcov -r svt_av1_total.info "*third_party*" "*test*" "*/usr/*" "*App*" -o svt_av1_final.info
 
 genhtml svt_av1_final.info --output-directory $OUTPUT_DIR

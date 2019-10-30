@@ -101,7 +101,7 @@ SvtAv1E2ETestFramework::SvtAv1E2ETestFramework() : enc_setting(GetParam()) {
     enable_recon = false;
     enable_decoder = false;
     enable_stat = false;
-    enable_save_bitstream = false;
+    enable_save_bitstream = true;
     enable_analyzer = false;
     enable_config = false;
     enc_config_ = create_enc_config();
@@ -258,7 +258,8 @@ void SvtAv1E2ETestFramework::init_test(TestVideoVector &test_vector) {
 
     // create IvfFile if required.
     if (enable_save_bitstream) {
-        std::string fn = std::get<0>(test_vector) + ".ivf";
+        std::string fn =
+            std::get<0>(test_vector) + "_" + enc_setting.name + ".ivf";
         output_file_ = new IvfFile(fn.c_str());
     }
 
@@ -562,15 +563,14 @@ static void update_prev_ivf_header(
     svt_av1_e2e_test::SvtAv1E2ETestFramework::IvfFile *ivf) {
     char header[4];  // only for the number of bytes
     if (ivf && ivf->file && ivf->byte_count_since_ivf != 0) {
-        fseeko(
-            ivf->file,
-            (-(int32_t)(ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE)),
-            SEEK_CUR);
+        fseeko(ivf->file,
+               (-(int32_t)(ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE)),
+               SEEK_CUR);
         mem_put_le32(&header[0], (int32_t)(ivf->byte_count_since_ivf));
         fwrite(header, 1, 4, ivf->file);
         fseeko(ivf->file,
-                 (ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE - 4),
-                 SEEK_CUR);
+               (ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE - 4),
+               SEEK_CUR);
         ivf->byte_count_since_ivf = 0;
     }
 }
@@ -676,11 +676,8 @@ void SvtAv1E2ETestFramework::write_compress_data(
 void SvtAv1E2ETestFramework::process_compress_data(
     const EbBufferHeaderType *data) {
     ASSERT_NE(data, nullptr);
-    if (refer_dec_ == nullptr) {
-        if (output_file_)
-            write_compress_data(data);
-        return;
-    }
+    if (output_file_)
+        write_compress_data(data);
 
     if (data->flags & EB_BUFFERFLAG_SHOW_EXT) {
         uint32_t first_part_size =
