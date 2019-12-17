@@ -147,9 +147,9 @@ matrix:
     - name: Linux Clang 6 build
       compiler: clang
       env: build_type=release CC=clang-6.0 CXX=clang++-6.0
-    - name: Linux Clang 10 build
-      compiler: clang
-      env: build_type=release CC=clang-10 CXX=clang++-10
+    - #name: Linux Clang 10 build
+      #compiler: clang
+      #env: build_type=release CC=clang-10 CXX=clang++-10
     # FFmpeg interation build
     - name: FFmpeg patch
       env: build_type=release CMAKE_EFLAGS="-DBUILD_SHARED_LIBS=OFF"
@@ -223,7 +223,7 @@ matrix:
     # Coveralls on Linux and macOS
     - name: Coveralls Linux+gcc
       stage: coveralls+valgrind
-      env: COVERALLS_PARALLEL=true build_type=debug CMAKE_EFLAGS="-DCOVERAGE=ON"
+      env: COVERALLS_PARALLEL=true build_type=debug CMAKE_EFLAGS="-DCOVERAGE=ON -DCMAKE_C_OUTPUT_EXTENSION_REPLACE=1 -DCMAKE_CXX_OUTPUT_EXTENSION_REPLACE=1 -DBUILD_TESTING=ON -DBUILD_SHARED_LIBS=ON -DAVX512_OFF=ON"
       script:
         - *base_script
         - &coveralls_script |
@@ -240,13 +240,15 @@ matrix:
           sudo make install && cd $TRAVIS_BUILD_DIR &&
           ffmpeg -i akiyo_cif.y4m -vframes 150 -c:v libsvt_av1 test.mp4 &&
           ffmpeg -i bus_cif.y4m -nostdin -f rawvideo -pix_fmt yuv420p - | SvtAv1EncApp -i stdin -w 352 -h 288 -fps 30 -n 150 -b test2.ivf
+          SvtAv1UnitTests
+          SvtAv1E2ETests --gtest_filter="SvtAv1/ConformanceDeathTest.DefaultSettingTest/EncModeTest8
       after_script: &after_coveralls_script |
         if [ $CC = "clang" ] && [ $TRAVIS_OS_NAME = linux ]; then
           GCOV_FILE=llvm-cov GCOV_OPTIONS='gcov -pl'
         else
           GCOV_FILE=gcov GCOV_OPTIONS='\-lp'
         fi
-        coveralls --root $TRAVIS_BUILD_DIR -i Source -E ".*gtest.*" -E ".*CMakeFiles.*" -E ".*third_party.*" -E ".*test/FilmGrainTest.cc" -E ".*ffmpeg.*" --gcov $GCOV_FILE --gcov-options "$GCOV_OPTIONS"
+        coveralls --root $TRAVIS_BUILD_DIR -i Source -E ".*gtest.*" -E ".*CMakeFiles.*" -E ".*third_party.*" -E ".*test.*" -E ".*/usr/.*" -E ".*ffmpeg.*" --gcov $GCOV_FILE --gcov-options "$GCOV_OPTIONS"
     - name: Coveralls osx+clang
       os: osx
       compiler: clang
