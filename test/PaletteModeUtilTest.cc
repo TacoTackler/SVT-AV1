@@ -159,9 +159,9 @@ TEST_F(ColorCountHbdTest, MatchTest12Bit) {
 }
 
 extern "C" void av1_k_means_dim1_c(const int *data, int *centroids,
-                                 uint8_t *indices, int n, int k, int max_itr);
+                                   uint8_t *indices, int n, int k, int max_itr);
 extern "C" void av1_k_means_dim2_c(const int *data, int *centroids,
-                                 uint8_t *indices, int n, int k, int max_itr);
+                                   uint8_t *indices, int n, int k, int max_itr);
 static const int MaxItr = 50;
 /**
  * @brief Unit test for kmeans functions:
@@ -312,9 +312,8 @@ TEST_P(KMeansTest, CheckOutput2D) {
 INSTANTIATE_TEST_CASE_P(PalleteMode, KMeansTest,
                         ::testing::Range(PALETTE_MIN_SIZE, PALETTE_MAX_SIZE));
 
-
 typedef void (*av1_k_means_func)(const int *data, int *centroids,
-                      uint8_t *indices, int n, int k, int max_itr);
+                                 uint8_t *indices, int n, int k, int max_itr);
 
 #define MAX_BLOCK_SIZE (MAX_SB_SIZE * MAX_SB_SIZE)
 typedef std::tuple<int, int> BlockSize;
@@ -337,17 +336,15 @@ BlockSize TEST_BLOCK_SIZES[] = {BlockSize(4, 4),
 TestPattern TEST_PATTERNS[] = {MIN, MAX, RANDOM};
 
 static void av1_calc_indices_dim1_c_wrap(const int *data, int *centroids,
-                                    uint8_t *indices, int n, int k,
-                                    int max_itr)
-{
+                                         uint8_t *indices, int n, int k,
+                                         int max_itr) {
     (void)max_itr;
     av1_calc_indices_dim1_c(data, centroids, indices, n, k);
 }
 
 static void av1_calc_indices_dim1_avx2_wrap(const int *data, int *centroids,
-                                    uint8_t *indices, int n, int k,
-                                    int max_itr)
-{
+                                            uint8_t *indices, int n, int k,
+                                            int max_itr) {
     (void)max_itr;
     av1_calc_indices_dim1_avx2(data, centroids, indices, n, k);
 }
@@ -371,8 +368,7 @@ FuncPair TEST_FUNC_PAIRS[] = {
     FuncPair(av1_calc_indices_dim1_c_wrap, av1_calc_indices_dim1_avx2_wrap),
     FuncPair(av1_k_means_dim1_c, av1_k_means_dim1_avx2),
     FuncPair(av1_calc_indices_dim2_c_wrap, av1_calc_indices_dim2_avx2_wrap),
-    FuncPair(av1_k_means_dim2_c, av1_k_means_dim2_avx2)
-};
+    FuncPair(av1_k_means_dim2_c, av1_k_means_dim2_avx2)};
 
 typedef std::tuple<TestPattern, BlockSize, FuncPair> Av1KMeansDimParam;
 

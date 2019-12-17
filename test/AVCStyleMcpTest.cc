@@ -134,11 +134,10 @@ static const AVCStyleMcpFuncPair AVC_style_c_sse3_func_pairs[] = {
      avc_style_luma_interpolation_filter_vertical_ssse3_intrin},
     {"horizontal",
      avc_style_luma_interpolation_filter_horizontal_c,
-     avc_style_luma_interpolation_filter_horizontal_ssse3_intrin}
-};
+     avc_style_luma_interpolation_filter_horizontal_ssse3_intrin}};
 
-const int NUM_FUNCS = sizeof(AVC_style_c_sse3_func_pairs)
-                    / sizeof(AVC_style_c_sse3_func_pairs[0]);
+const int NUM_FUNCS = sizeof(AVC_style_c_sse3_func_pairs) /
+                      sizeof(AVC_style_c_sse3_func_pairs[0]);
 
 typedef std::tuple<PUSize, TestPattern> TestPUParam;
 typedef std::tuple<SearchArea, TestPattern> TestSearchRegionParam;
@@ -269,27 +268,26 @@ class AVCStyleMcpTestBase : public ::testing::Test {
         uint32_t i = is_PU_block_ ? 0 : 1;
         for (; i < 16; i++) {
             avc_style_luma_interpolation_filter_helper_c(src_ + src_offset_,
-                                                src_stride_,
-                                                dst1_,
-                                                dst_stride_,
-                                                block_width_,
-                                                block_height_,
-                                                tmp_buf_,
-                                                EB_FALSE,
-                                                2,
-                                                i);
+                                                         src_stride_,
+                                                         dst1_,
+                                                         dst_stride_,
+                                                         block_width_,
+                                                         block_height_,
+                                                         tmp_buf_,
+                                                         EB_FALSE,
+                                                         2,
+                                                         i);
 
-            avc_style_luma_interpolation_filter_helper_ssse3(
-                                                src_ + src_offset_,
-                                                src_stride_,
-                                                dst2_,
-                                                dst_stride_,
-                                                block_width_,
-                                                block_height_,
-                                                tmp_buf_,
-                                                EB_FALSE,
-                                                2,
-                                                i);
+            avc_style_luma_interpolation_filter_helper_ssse3(src_ + src_offset_,
+                                                             src_stride_,
+                                                             dst2_,
+                                                             dst_stride_,
+                                                             block_width_,
+                                                             block_height_,
+                                                             tmp_buf_,
+                                                             EB_FALSE,
+                                                             2,
+                                                             i);
 
             int fail_pixel_Count = 0;
             for (uint32_t j = 0; j < block_height_; j++) {

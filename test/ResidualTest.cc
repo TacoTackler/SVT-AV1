@@ -118,9 +118,11 @@ class ResidualTestBase : public ::testing::Test {
 };
 
 typedef void (*residual_kernel8bit_func)(uint8_t *input, uint32_t input_stride,
-                                    uint8_t *pred, uint32_t pred_stride,
-                                    int16_t *residual, uint32_t residual_stride,
-                                    uint32_t area_width, uint32_t area_height);
+                                         uint8_t *pred, uint32_t pred_stride,
+                                         int16_t *residual,
+                                         uint32_t residual_stride,
+                                         uint32_t area_width,
+                                         uint32_t area_height);
 
 static const residual_kernel8bit_func residual_kernel8bit_func_table[] = {
     residual_kernel8bit_avx2,
@@ -187,26 +189,26 @@ class ResidualKernelTest
         prepare_data();
 
         residual_kernel8bit_c(input_,
-                          input_stride_,
-                          pred_,
-                          pred_stride_,
-                          residual1_,
-                          residual_stride_,
-                          area_width_,
-                          area_height_);
+                              input_stride_,
+                              pred_,
+                              pred_stride_,
+                              residual1_,
+                              residual_stride_,
+                              area_width_,
+                              area_height_);
 
         for (int i = 0; i < sizeof(residual_kernel8bit_func_table) /
                                 sizeof(*residual_kernel8bit_func_table);
              i++) {
             eb_buf_random_s16(residual2_, test_size_);
             residual_kernel8bit_func_table[i](input_,
-                                         input_stride_,
-                                         pred_,
-                                         pred_stride_,
-                                         residual2_,
-                                         residual_stride_,
-                                         area_width_,
-                                         area_height_);
+                                              input_stride_,
+                                              pred_,
+                                              pred_stride_,
+                                              residual2_,
+                                              residual_stride_,
+                                              area_width_,
+                                              area_height_);
             check_residuals(area_width_, area_height_);
         }
     }
@@ -225,13 +227,13 @@ class ResidualKernelTest
 
         for (uint64_t i = 0; i < num_loop; i++) {
             residual_kernel8bit_c(input_,
-                          input_stride_,
-                          pred_,
-                          pred_stride_,
-                          residual1_,
-                          residual_stride_,
-                          area_width_,
-                          area_height_);
+                                  input_stride_,
+                                  pred_,
+                                  pred_stride_,
+                                  residual1_,
+                                  residual_stride_,
+                                  area_width_,
+                                  area_height_);
         }
 
         EbStartTime(&middle_time_seconds, &middle_time_useconds);
@@ -250,22 +252,22 @@ class ResidualKernelTest
 
             for (uint64_t j = 0; j < num_loop; j++) {
                 residual_kernel8bit_func_table[i](input_,
-                                             input_stride_,
-                                             pred_,
-                                             pred_stride_,
-                                             residual2_,
-                                             residual_stride_,
-                                             area_width_,
-                                             area_height_);
+                                                  input_stride_,
+                                                  pred_,
+                                                  pred_stride_,
+                                                  residual2_,
+                                                  residual_stride_,
+                                                  area_width_,
+                                                  area_height_);
             }
             check_residuals(area_width_, area_height_);
 
             EbStartTime(&finish_time_seconds, &finish_time_useconds);
             EbComputeOverallElapsedTimeMs(middle_time_seconds,
-                                              middle_time_useconds,
-                                              finish_time_seconds,
-                                              finish_time_useconds,
-                                              &time_o);
+                                          middle_time_useconds,
+                                          finish_time_seconds,
+                                          finish_time_useconds,
+                                          &time_o);
 
             printf("residual_kernel8bit(%3dx%3d): %6.2f\n",
                    area_width_,
@@ -286,13 +288,13 @@ class ResidualKernelTest
                                          area_width_,
                                          area_height_);
         residual_kernel16bit_c(input16bit_,
-                             input_stride_,
-                             pred16bit_,
-                             pred_stride_,
-                             residual2_,
-                             residual_stride_,
-                             area_width_,
-                             area_height_);
+                               input_stride_,
+                               pred16bit_,
+                               pred_stride_,
+                               residual2_,
+                               residual_stride_,
+                               area_width_,
+                               area_height_);
 
         check_residuals(area_width_, area_height_);
     }

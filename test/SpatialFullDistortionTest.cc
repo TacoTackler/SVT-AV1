@@ -27,7 +27,7 @@
 #include "util.h"
 
 namespace {
-    using svt_av1_test_tool::SVTRandom;
+using svt_av1_test_tool::SVTRandom;
 
 typedef uint64_t (*SpatialFullDistortionKernelFunc)(
     uint8_t *input, uint32_t input_offset, uint32_t input_stride,
@@ -518,7 +518,7 @@ class FullDistortionKernel16BitsFuncTest
     }
 
     void init_data() {
-        ///Support up to 15 bit depth
+        /// Support up to 15 bit depth
         const uint16_t mask = (1 << 15) - 1;
         uint16_t *input_16bit = (uint16_t *)input_;
         uint16_t *recon_16bit = (uint16_t *)recon_;
@@ -648,12 +648,12 @@ void FullDistortionKernel16BitsFuncTest::RunSpeedTest() {
                area_height,
                1000000 * time_c / num_loops);
         printf(
-               "    full_distortion_kernel16_bits_opt(%dx%d) : %6.2f   "
-               "(Comparison: %5.2fx)\n",
-               area_width,
-               area_height,
-               1000000 * time_o / num_loops,
-               time_c / time_o);
+            "    full_distortion_kernel16_bits_opt(%dx%d) : %6.2f   "
+            "(Comparison: %5.2fx)\n",
+            area_width,
+            area_height,
+            1000000 * time_o / num_loops,
+            time_c / time_o);
     }
 }
 

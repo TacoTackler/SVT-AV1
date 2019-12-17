@@ -63,10 +63,10 @@ void AV1FrameErrorTest::RandomValues(frame_error_func test_impl, int width,
                                      int height) {
     const int stride = (((width * 3) / 2) + 15) & ~15;
     const int max_blk_size = stride * height;
-    uint8_t *const dst =
-        static_cast<uint8_t *>(eb_aom_memalign(16, max_blk_size * sizeof(*dst)));
-    uint8_t *const ref =
-        static_cast<uint8_t *>(eb_aom_memalign(16, max_blk_size * sizeof(*ref)));
+    uint8_t *const dst = static_cast<uint8_t *>(
+        eb_aom_memalign(16, max_blk_size * sizeof(*dst)));
+    uint8_t *const ref = static_cast<uint8_t *>(
+        eb_aom_memalign(16, max_blk_size * sizeof(*ref)));
     ASSERT_TRUE(dst != NULL);
     ASSERT_TRUE(ref != NULL);
     for (int i = 0; i < max_blk_size; ++i) {
@@ -86,10 +86,10 @@ void AV1FrameErrorTest::ExtremeValues(frame_error_func test_impl, int width,
                                       int height) {
     const int stride = (((width * 3) / 2) + 15) & ~15;
     const int max_blk_size = stride * height;
-    uint8_t *const dst =
-        static_cast<uint8_t *>(eb_aom_memalign(16, max_blk_size * sizeof(*dst)));
-    uint8_t *const ref =
-        static_cast<uint8_t *>(eb_aom_memalign(16, max_blk_size * sizeof(*ref)));
+    uint8_t *const dst = static_cast<uint8_t *>(
+        eb_aom_memalign(16, max_blk_size * sizeof(*dst)));
+    uint8_t *const ref = static_cast<uint8_t *>(
+        eb_aom_memalign(16, max_blk_size * sizeof(*ref)));
     ASSERT_TRUE(dst != NULL);
     ASSERT_TRUE(ref != NULL);
     for (int r = 0; r < 2; r++) {
@@ -114,10 +114,10 @@ void AV1FrameErrorTest::RunSpeedTest(frame_error_func test_impl, int width,
                                      int height) {
     const int stride = (((width * 3) / 2) + 15) & ~15;
     const int max_blk_size = stride * height;
-    uint8_t *const dst =
-        static_cast<uint8_t *>(eb_aom_memalign(16, max_blk_size * sizeof(*dst)));
-    uint8_t *const ref =
-        static_cast<uint8_t *>(eb_aom_memalign(16, max_blk_size * sizeof(*ref)));
+    uint8_t *const dst = static_cast<uint8_t *>(
+        eb_aom_memalign(16, max_blk_size * sizeof(*dst)));
+    uint8_t *const ref = static_cast<uint8_t *>(
+        eb_aom_memalign(16, max_blk_size * sizeof(*ref)));
     ASSERT_TRUE(dst != NULL);
     ASSERT_TRUE(ref != NULL);
     for (int i = 0; i < max_blk_size; ++i) {

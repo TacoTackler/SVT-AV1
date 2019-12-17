@@ -243,13 +243,13 @@ class PackMsbTest : public ::testing::Test,
                                            area_height_);
 
             compressed_packmsb_c(in_8bit_buffer_,
-                               in8_stride_,
-                               inn_bit_buffer_,
-                               out_16bit_buffer2_,
-                               inn_stride,
-                               out_stride_,
-                               area_width_,
-                               area_height_);
+                                 in8_stride_,
+                                 inn_bit_buffer_,
+                                 out_16bit_buffer2_,
+                                 inn_stride,
+                                 out_stride_,
+                                 area_width_,
+                                 area_height_);
 
             check_output(area_width_,
                          area_height_,
@@ -486,11 +486,11 @@ class UnPackTest : public ::testing::Test,
                                                  area_width_,
                                                  area_height_);
             un_pack8_bit_data_c(in_16bit_buffer_,
-                              in_stride_,
-                              out_8bit_buffer2_,
-                              out_stride_,
-                              area_width_,
-                              area_height_);
+                                in_stride_,
+                                out_8bit_buffer2_,
+                                out_stride_,
+                                area_width_,
+                                area_height_);
 
             check_output(area_width_,
                          area_height_,
@@ -667,13 +667,13 @@ class UnPackAvgTest : public ::testing::Test,
                                    area_width_,
                                    area_height_);
             unpack_avg_c(in_16bit_buffer1_,
-                       in_stride_,
-                       in_16bit_buffer2_,
-                       in_stride_,
-                       out_8bit_buffer_c_,
-                       out_stride_,
-                       area_width_,
-                       area_height_);
+                         in_stride_,
+                         in_16bit_buffer2_,
+                         in_stride_,
+                         out_8bit_buffer_c_,
+                         out_stride_,
+                         area_width_,
+                         area_height_);
             unpack_avg_sse2_intrin(in_16bit_buffer1_,
                                    in_stride_,
                                    in_16bit_buffer2_,
@@ -712,14 +712,14 @@ class UnPackAvgTest : public ::testing::Test,
                                                 area_width_,
                                                 area_height_);
                 unpack_avg_safe_sub_c(in_16bit_buffer1_,
-                                    in_stride_,
-                                    in_16bit_buffer2_,
-                                    in_stride_,
-                                    out_8bit_buffer_c_,
-                                    out_stride_,
-                                    false,
-                                    area_width_,
-                                    area_height_);
+                                      in_stride_,
+                                      in_16bit_buffer2_,
+                                      in_stride_,
+                                      out_8bit_buffer_c_,
+                                      out_stride_,
+                                      false,
+                                      area_width_,
+                                      area_height_);
 
                 check_output(area_width_,
                              area_height_,

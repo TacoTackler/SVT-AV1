@@ -37,7 +37,6 @@
 #include "EbTime.h"
 #include "EncodeTxbRef_C.h"
 
-
 using svt_av1_test_tool::SVTRandom;  // to generate the random
 namespace {
 

@@ -850,9 +850,7 @@ static const vector<CPU_FLAGS> valid_use_cpu_flags = {
     CPU_FLAGS_AVX512BW,
     CPU_FLAGS_AVX512VL,
 };
-static const vector<CPU_FLAGS> invalid_use_cpu_flags = {
-    CPU_FLAGS_INVALID
-};
+static const vector<CPU_FLAGS> invalid_use_cpu_flags = {CPU_FLAGS_INVALID};
 
 // Application Specific parameters
 /* ID assigned to each channel when multiple instances are running within the

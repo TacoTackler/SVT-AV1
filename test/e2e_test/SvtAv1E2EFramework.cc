@@ -562,15 +562,14 @@ static void update_prev_ivf_header(
     svt_av1_e2e_test::SvtAv1E2ETestFramework::IvfFile *ivf) {
     char header[4];  // only for the number of bytes
     if (ivf && ivf->file && ivf->byte_count_since_ivf != 0) {
-        fseeko(
-            ivf->file,
-            (-(int32_t)(ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE)),
-            SEEK_CUR);
+        fseeko(ivf->file,
+               (-(int32_t)(ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE)),
+               SEEK_CUR);
         mem_put_le32(&header[0], (int32_t)(ivf->byte_count_since_ivf));
         fwrite(header, 1, 4, ivf->file);
         fseeko(ivf->file,
-                 (ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE - 4),
-                 SEEK_CUR);
+               (ivf->byte_count_since_ivf + IVF_FRAME_HEADER_SIZE - 4),
+               SEEK_CUR);
         ivf->byte_count_since_ivf = 0;
     }
 }

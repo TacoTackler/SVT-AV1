@@ -61,7 +61,8 @@ class AV1SelfguidedFilterTest
             32, stride * (height + 32) * sizeof(uint8_t));
         uint8_t *output_ = (uint8_t *)eb_aom_memalign(
             32, out_stride * (height + 32) * sizeof(uint8_t));
-        int32_t *tmpbuf = (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+        int32_t *tmpbuf =
+            (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
         uint8_t *input = input_ + stride * 16 + 16;
         uint8_t *output = output_ + out_stride * 16 + 16;
 
@@ -93,16 +94,16 @@ class AV1SelfguidedFilterTest
                     uint8_t *input_p = input + k * stride + j;
                     uint8_t *output_p = output + k * out_stride + j;
                     eb_apply_selfguided_restoration_c(input_p,
-                                                   w,
-                                                   h,
-                                                   stride,
-                                                   eps,
-                                                   xqd,
-                                                   output_p,
-                                                   out_stride,
-                                                   tmpbuf,
-                                                   8,
-                                                   0);
+                                                      w,
+                                                      h,
+                                                      stride,
+                                                      eps,
+                                                      xqd,
+                                                      output_p,
+                                                      out_stride,
+                                                      tmpbuf,
+                                                      8,
+                                                      0);
                 }
         }
         EbStartTime(&middle_time_seconds, &middle_time_useconds);
@@ -170,7 +171,8 @@ class AV1SelfguidedFilterTest
             32, out_stride * (max_h + 32) * sizeof(uint8_t));
         uint8_t *output2_ = (uint8_t *)eb_aom_memalign(
             32, out_stride * (max_h + 32) * sizeof(uint8_t));
-        int32_t *tmpbuf = (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+        int32_t *tmpbuf =
+            (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
 
         uint8_t *input = input_ + stride * 16 + 16;
         uint8_t *output = output_ + out_stride * 16 + 16;
@@ -213,16 +215,16 @@ class AV1SelfguidedFilterTest
                              8,
                              0);
                     eb_apply_selfguided_restoration_c(input_p,
-                                                   w,
-                                                   h,
-                                                   stride,
-                                                   eps,
-                                                   xqd,
-                                                   output2_p,
-                                                   out_stride,
-                                                   tmpbuf,
-                                                   8,
-                                                   0);
+                                                      w,
+                                                      h,
+                                                      stride,
+                                                      eps,
+                                                      xqd,
+                                                      output2_p,
+                                                      out_stride,
+                                                      tmpbuf,
+                                                      8,
+                                                      0);
                 }
 
             for (j = 0; j < test_h; ++j)
@@ -284,7 +286,8 @@ class AV1HighbdSelfguidedFilterTest
             32, stride * (height + 32) * sizeof(uint16_t));
         uint16_t *output_ = (uint16_t *)eb_aom_memalign(
             32, out_stride * (height + 32) * sizeof(uint16_t));
-        int32_t *tmpbuf = (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+        int32_t *tmpbuf =
+            (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
         uint16_t *input = input_ + stride * 16 + 16;
         uint16_t *output = output_ + out_stride * 16 + 16;
 
@@ -315,17 +318,18 @@ class AV1HighbdSelfguidedFilterTest
                     int32_t h = AOMMIN(pu_height, height - k);
                     uint16_t *input_p = input + k * stride + j;
                     uint16_t *output_p = output + k * out_stride + j;
-                    eb_apply_selfguided_restoration_c(CONVERT_TO_BYTEPTR(input_p),
-                                                   w,
-                                                   h,
-                                                   stride,
-                                                   eps,
-                                                   xqd,
-                                                   CONVERT_TO_BYTEPTR(output_p),
-                                                   out_stride,
-                                                   tmpbuf,
-                                                   bit_depth,
-                                                   1);
+                    eb_apply_selfguided_restoration_c(
+                        CONVERT_TO_BYTEPTR(input_p),
+                        w,
+                        h,
+                        stride,
+                        eps,
+                        xqd,
+                        CONVERT_TO_BYTEPTR(output_p),
+                        out_stride,
+                        tmpbuf,
+                        bit_depth,
+                        1);
                 }
         }
         EbStartTime(&middle_time_seconds, &middle_time_useconds);
@@ -397,7 +401,8 @@ class AV1HighbdSelfguidedFilterTest
             32, out_stride * (max_h + 32) * sizeof(uint16_t));
         uint16_t *output2_ = (uint16_t *)eb_aom_memalign(
             32, out_stride * (max_h + 32) * sizeof(uint16_t));
-        int32_t *tmpbuf = (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+        int32_t *tmpbuf =
+            (int32_t *)eb_aom_memalign(32, RESTORATION_TMPBUF_SIZE);
 
         uint16_t *input = input_ + stride * 16 + 16;
         uint16_t *output = output_ + out_stride * 16 + 16;

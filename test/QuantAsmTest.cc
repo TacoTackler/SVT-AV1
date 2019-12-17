@@ -39,10 +39,10 @@
 #include "random.h"
 
 namespace QuantizeAsmTest {
-extern "C" void eb_av1_build_quantizer(AomBitDepth bit_depth, int32_t y_dc_delta_q,
-                                    int32_t u_dc_delta_q, int32_t u_ac_delta_q,
-                                    int32_t v_dc_delta_q, int32_t v_ac_delta_q,
-                                    Quants *const quants, Dequants *const deq);
+extern "C" void eb_av1_build_quantizer(
+    AomBitDepth bit_depth, int32_t y_dc_delta_q, int32_t u_dc_delta_q,
+    int32_t u_ac_delta_q, int32_t v_dc_delta_q, int32_t v_ac_delta_q,
+    Quants *const quants, Dequants *const deq);
 
 using QuantizeFunc = void (*)(const TranLow *coeff_ptr, intptr_t n_coeffs,
                               int32_t skip_block, const int16_t *zbin_ptr,

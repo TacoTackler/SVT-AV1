@@ -374,7 +374,6 @@ class SADTestSubSample : public ::testing::WithParamInterface<TestSadParam>,
 
   protected:
     void check_sad() {
-
         uint32_t ref_sad = 0;
         uint32_t non_avx2_sad = 0;
         uint32_t avx2_sad = 0;
@@ -382,25 +381,22 @@ class SADTestSubSample : public ::testing::WithParamInterface<TestSadParam>,
         prepare_data();
 
         ref_sad = reference_sad();
-        non_avx2_sad = nxm_sad_kernel_helper_c(
-                                         src_aligned_,
-                                         src_stride_,
-                                         ref1_aligned_,
-                                         ref1_stride_,
-                                         height_,
-                                         width_);
+        non_avx2_sad = nxm_sad_kernel_helper_c(src_aligned_,
+                                               src_stride_,
+                                               ref1_aligned_,
+                                               ref1_stride_,
+                                               height_,
+                                               width_);
 
-        avx2_sad = nxm_sad_kernel_sub_sampled_helper_avx2(
-                                 src_aligned_,
-                                 src_stride_,
-                                 ref1_aligned_,
-                                 ref1_stride_,
-                                 height_,
-                                 width_);
+        avx2_sad = nxm_sad_kernel_sub_sampled_helper_avx2(src_aligned_,
+                                                          src_stride_,
+                                                          ref1_aligned_,
+                                                          ref1_stride_,
+                                                          height_,
+                                                          width_);
 
         EXPECT_EQ(non_avx2_sad, avx2_sad)
             << "compare non_avx2 and non_avx2 error";
-
     }
 };
 
@@ -456,21 +452,21 @@ class SADTest : public ::testing::WithParamInterface<TestSadParam>,
         ref_sad = reference_sad();
 
         non_avx2_sad = nxm_sad_kernel_helper_c(src_aligned_,
-                                        src_stride_,
-                                        ref1_aligned_,
-                                        ref1_stride_,
-                                        height_,
-                                        width_);
+                                               src_stride_,
+                                               ref1_aligned_,
+                                               ref1_stride_,
+                                               height_,
+                                               width_);
 
         avx2_sad = nxm_sad_kernel_helper_avx2(src_aligned_,
-                                        src_stride_,
-                                        ref1_aligned_,
-                                        ref1_stride_,
-                                        height_,
-                                        width_);
+                                              src_stride_,
+                                              ref1_aligned_,
+                                              ref1_stride_,
+                                              height_,
+                                              width_);
 
         EXPECT_EQ(non_avx2_sad, avx2_sad)
-                << "compare non_avx2 and non_avx2 error";
+            << "compare non_avx2 and non_avx2 error";
     }
 };
 
@@ -523,26 +519,25 @@ class SADAvgTest : public ::testing::WithParamInterface<TestSadParam>,
 
         ref_sad = reference_sad_avg();
         non_avx2_sad = nxm_sad_avg_kernel_helper_c(src_aligned_,
-                                        src_stride_,
-                                        ref1_aligned_,
-                                        ref1_stride_,
-                                        ref2_aligned_,
-                                        ref2_stride_,
-                                        height_,
-                                        width_);
+                                                   src_stride_,
+                                                   ref1_aligned_,
+                                                   ref1_stride_,
+                                                   ref2_aligned_,
+                                                   ref2_stride_,
+                                                   height_,
+                                                   width_);
 
         avx2_sad = nxm_sad_avg_kernel_helper_avx2(src_aligned_,
-                                 src_stride_,
-                                 ref1_aligned_,
-                                 ref1_stride_,
-                                 ref2_aligned_,
-                                 ref2_stride_,
-                                 height_,
-                                 width_);
+                                                  src_stride_,
+                                                  ref1_aligned_,
+                                                  ref1_stride_,
+                                                  ref2_aligned_,
+                                                  ref2_stride_,
+                                                  height_,
+                                                  width_);
 
         EXPECT_EQ(non_avx2_sad, avx2_sad)
-                << "compare non_avx2 and non_avx2 error";
-
+            << "compare non_avx2 and non_avx2 error";
     }
 };
 
@@ -2019,12 +2014,13 @@ INSTANTIATE_TEST_CASE_P(InitializeBuffer32, InitializeBuffer32,
                         ::testing::Combine(::testing::Values(2, 3, 4),
                                            ::testing::Values(1, 2, 3)));
 /**
- * @Brief Base class for SAD test. SADTestBaseSad16Bit handle test vector in memory,
- * provide SAD and SAD avg reference function
+ * @Brief Base class for SAD test. SADTestBaseSad16Bit handle test vector in
+ * memory, provide SAD and SAD avg reference function
  */
 class SADTestBase16bit : public ::testing::Test {
   public:
-    SADTestBase16bit(const int width, const int height, TestPattern test_pattern) {
+    SADTestBase16bit(const int width, const int height,
+                     TestPattern test_pattern) {
         width_ = width;
         height_ = height;
         src_stride_ = MAX_SB_SIZE;
@@ -2123,17 +2119,17 @@ class SADTestBase16bit : public ::testing::Test {
  * sad_16bit_kernel_avx2.
  *
  * Test cases:
- *  Width {4, 8, 16, 24, 32, 48, 64, 128} x height{ 4, 8, 16, 24, 32, 48, 64, 128)
- *  Test vector pattern {REF_MAX, SRC_MAX, RANDOM, UNALIGN}
+ *  Width {4, 8, 16, 24, 32, 48, 64, 128} x height{ 4, 8, 16, 24, 32, 48, 64,
+ * 128) Test vector pattern {REF_MAX, SRC_MAX, RANDOM, UNALIGN}
  *
  */
 class SADTestSubSample16bit
     : public ::testing::WithParamInterface<TestSadParam>,
-                         public SADTestBase16bit {
+      public SADTestBase16bit {
   public:
     SADTestSubSample16bit()
         : SADTestBase16bit(std::get<0>(TEST_GET_PARAM(1)),
-                      std::get<1>(TEST_GET_PARAM(1)), TEST_GET_PARAM(0)) {
+                           std::get<1>(TEST_GET_PARAM(1)), TEST_GET_PARAM(0)) {
     }
 
   protected:
@@ -2156,12 +2152,13 @@ class SADTestSubSample16bit
                 src_, src_stride_, ref_, ref_stride_, height_, width_);
 
             EXPECT_EQ(sad_c, sad_avx2)
-                << "compare sad_16b_kernel_c and sad_16bit_kernel_avx2 error, repeat: " << i;
+                << "compare sad_16b_kernel_c and sad_16bit_kernel_avx2 error, "
+                   "repeat: "
+                << i;
         }
-
     }
 
-void RunSpeedTest() {
+    void RunSpeedTest() {
         uint32_t sad_c = 0;
         uint32_t sad_avx2 = 0;
 

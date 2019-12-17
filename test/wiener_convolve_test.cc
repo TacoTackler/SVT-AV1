@@ -224,7 +224,8 @@ class AV1WienerConvolveTest : public ::testing::TestWithParam<ParamType> {
 
     virtual void speed_and_check(const InterpKernel& hkernel,
                                  const InterpKernel& vkernel,
-                                 const ConvolveParams& params, const int tap) = 0;
+                                 const ConvolveParams& params,
+                                 const int tap) = 0;
 
     virtual void run_random_test(const int test_times) {
         // Generate random filter kernels

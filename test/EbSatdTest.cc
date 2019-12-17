@@ -137,8 +137,7 @@ class Compute8x8SatdTest : public ::testing::Test {
                     fail_pixel_count++;
             }
             EXPECT_EQ(0, fail_pixel_count)
-                << "error in dcValue for " << fail_pixel_count
-                << "times";
+                << "error in dcValue for " << fail_pixel_count << "times";
         }
     }
 
