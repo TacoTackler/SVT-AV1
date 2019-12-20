@@ -44,13 +44,14 @@ else
     cp "$SOURCE_DIR"third_party/aom/lib/linux/libaom.so ./libaom.so.0
 fi
 
-export GTEST_TOTAL_SHARDS=10
-seq 0 $(( $GTEST_TOTAL_SHARDS - 1 )) \
-       | xargs -n 1 -P 10 -I{} env GTEST_SHARD_INDEX={} ./SvtAv1UnitTests
-unset GTEST_TOTAL_SHARDS
-./SvtAv1E2ETests --gtest_filter="SvtAv1/ConformanceDeathTest.DefaultSettingTest/EncModeTest*"
-./SvtAv1E2ETests --gtest_filter="SvtAv1/ConformanceDeathTest.DefaultSettingTest/ScreenToolTest2*"
-./SvtAv1E2ETests --gtest_filter="SvtAv1/ConformanceDeathTest.DefaultSettingTest/PaletteModeTest*"
+#export GTEST_TOTAL_SHARDS=10
+#seq 0 $(( $GTEST_TOTAL_SHARDS - 1 )) \
+#       | xargs -n 1 -P 10 -I{} env GTEST_SHARD_INDEX={} ./SvtAv1UnitTests
+#unset GTEST_TOTAL_SHARDS
+#./SvtAv1E2ETests --gtest_filter="SvtAv1/ConformanceDeathTest.DefaultSettingTest/EncModeTest*"
+#./SvtAv1E2ETests --gtest_filter="SvtAv1/ConformanceDeathTest.DefaultSettingTest/ScreenToolTest2*"
+#./SvtAv1E2ETests --gtest_filter="SvtAv1/ConformanceDeathTest.DefaultSettingTest/PaletteModeTest*"
+./SvtAv1UnitTests --gtest_filter=*AV1FwdTxfm2dTest*
 
 # test all cases
 # following cases take much time for long time full test
@@ -68,3 +69,5 @@ lcov --add-tracefile svt_av1_base.info --add-tracefile svt_av1_test.info --outpu
 lcov -r svt_av1_total.info "*third_party*" "*test*" "*/usr/*" "*App*" "*Decoder*" -o svt_av1_final.info
 
 genhtml svt_av1_final.info --output-directory $OUTPUT_DIR
+
+coveralls -r $SOURCE_DIR -E ".*test.*" -E ".*/usr/.*" -E ".*third_party.*" -E ".*App.*" -E ".*Decoder.*" -l $BUILD_DIR/svt_av1_final.info
